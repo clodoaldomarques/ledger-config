@@ -1,9 +1,9 @@
-package accounting
+package ledger
 
 import (
 	"time"
 
-	"github.com/clodoaldomarques/ledger-config/internal/domain/accounting"
+	"github.com/clodoaldomarques/ledger-config/internal/domain/ledger"
 )
 
 type ScriptResponse struct {
@@ -21,9 +21,9 @@ type ScriptResponse struct {
 	Version     int64            `json:"version"`
 }
 
-func buildScriptResponse(s accounting.Script) ScriptResponse {
+func buildScriptResponse(s ledger.Config) ScriptResponse {
 	sr := ScriptResponse{
-		ScriptID:    s.ScriptID,
+		ScriptID:    s.ConfigID,
 		Level:       string(s.Level),
 		EventTypeID: s.EventTypeID,
 		OrgID:       s.OrgID,
@@ -56,7 +56,7 @@ type CompanyResponse struct {
 	Type string `json:"type,omitempty"`
 }
 
-func buildCompanyResponse(c *accounting.Company) *CompanyResponse {
+func buildCompanyResponse(c *ledger.Company) *CompanyResponse {
 	return &CompanyResponse{
 		Code: c.Code,
 		Type: c.Type,
@@ -69,7 +69,7 @@ type AccountResponse struct {
 	Cosif       string `json:"cosif,omitempty"`
 }
 
-func buildAccountResponse(a *accounting.Account) *AccountResponse {
+func buildAccountResponse(a *ledger.Account) *AccountResponse {
 	return &AccountResponse{
 		Number:      a.Number,
 		Description: a.Description,
@@ -84,7 +84,7 @@ type CostCenterResponse struct {
 	CreditOrg  string `json:"credit_org"`
 }
 
-func buildCostCenterResponse(c *accounting.CostCenter) *CostCenterResponse {
+func buildCostCenterResponse(c *ledger.CostCenter) *CostCenterResponse {
 	return &CostCenterResponse{
 		DebitCost:  c.DebitCost,
 		DebitOrg:   c.DebitOrg,
@@ -108,7 +108,7 @@ type EntryResponse struct {
 	Parameter     *ParameterResponse  `json:"parameter,omitempty"`
 }
 
-func buildEntryResponse(e accounting.Entry) EntryResponse {
+func buildEntryResponse(e ledger.Entry) EntryResponse {
 	er := EntryResponse{
 		EntryTypeID:   e.EntryTypeID,
 		Flow:          e.Flow,
@@ -143,7 +143,7 @@ type ParameterResponse struct {
 	Value string `json:"value"`
 }
 
-func buildParameterResponse(p *accounting.Parameter) *ParameterResponse {
+func buildParameterResponse(p *ledger.Parameter) *ParameterResponse {
 	return &ParameterResponse{
 		Name:  p.Name,
 		Value: p.Value,

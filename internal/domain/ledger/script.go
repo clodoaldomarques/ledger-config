@@ -1,4 +1,4 @@
-package accounting
+package ledger
 
 import (
 	"fmt"
@@ -14,11 +14,11 @@ const (
 )
 
 const (
-	PlatformTenant = "PISMO"
+	PlatformTenant = "LEDGER"
 )
 
-type Script struct {
-	ScriptID    string
+type Config struct {
+	ConfigID    string
 	Level       Level
 	EventTypeID string
 	OrgID       string
@@ -32,7 +32,7 @@ type Script struct {
 	Version     int64
 }
 
-func (s Script) Validate() error {
+func (s Config) Validate() error {
 	switch s.Level {
 	case TenantLevel:
 		if s.ProgramID != 0 {

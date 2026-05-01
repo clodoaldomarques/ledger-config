@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/clodoaldomarques/ledger-config/internal/infra/rest/accounting"
+	"github.com/clodoaldomarques/ledger-config/internal/infra/rest/ledger"
 	"github.com/clodoaldomarques/ledger-config/internal/infra/rest/shared"
 	"github.com/clodoaldomarques/ledger-config/pkg/logger"
 	"github.com/go-playground/validator"
@@ -29,13 +29,13 @@ func (s Server) routes() {
 	// health check
 	s.http.GET("/", HealthCheck)
 
-	// Accounting handler
-	s.http.POST("/v1/accounting/scripts", accounting.CreateScript)
-	s.http.PATCH("/v1/accounting/scripts/:script_id", accounting.UpdateScript)
-	s.http.DELETE("/v1/accounting/scripts/:script_id/disable", accounting.DisableScript)
+	// Ledger handler
+	s.http.POST("/v1/ledger/config", ledger.CreateConfig)
+	s.http.PATCH("/v1/ledger/config/:config_id", ledger.UpdateConfig)
+	s.http.DELETE("/v1/ledger/config/:config_id/disable", ledger.DisableConfig)
 
-	s.http.GET("/v1/accounting/scripts/:event_type_id/:program_id", accounting.FindAccountingScript)
-	s.http.GET("/v1/accounting/scripts", accounting.FindAllAccountingScripts)
+	s.http.GET("/v1/ledger/config/:event_type_id/:program_id", ledger.FindLedgerConfig)
+	s.http.GET("/v1/ledger/config", ledger.FindAllLedgerConfig)
 }
 
 func (s Server) Start(port int) error {

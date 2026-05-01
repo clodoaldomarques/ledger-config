@@ -9,7 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"github.com/clodoaldomarques/ledger-config/internal/domain/accounting"
+	"github.com/clodoaldomarques/ledger-config/internal/domain/ledger"
 )
 
 type Repository struct {
@@ -25,7 +25,7 @@ func NewRepository() *Repository {
 	}
 }
 
-func (r Repository) SaveScript(ctx context.Context, s accounting.Script) error {
+func (r Repository) SaveScript(ctx context.Context, s ledger.Config) error {
 	st := buildScriptTable(s)
 
 	item, err := attributevalue.MarshalMap(st)
@@ -46,7 +46,7 @@ func (r Repository) SaveScript(ctx context.Context, s accounting.Script) error {
 	return nil
 }
 
-func (r Repository) UpdateScript(ctx context.Context, s accounting.Script) error {
+func (r Repository) UpdateScript(ctx context.Context, s ledger.Config) error {
 	st := buildScriptTable(s)
 
 	itemMap, err := attributevalue.MarshalMap(st)
@@ -84,7 +84,7 @@ func (r Repository) UpdateScript(ctx context.Context, s accounting.Script) error
 		TableName: aws.String(r.tableName),
 		Key: map[string]types.AttributeValue{
 			"org_id":    &types.AttributeValueMemberS{Value: s.OrgID},
-			"script_id": &types.AttributeValueMemberS{Value: s.ScriptID},
+			"script_id": &types.AttributeValueMemberS{Value: s.ConfigID},
 		},
 		UpdateExpression:          aws.String(updateExpression),
 		ExpressionAttributeNames:  exprAttrNames,
@@ -99,7 +99,7 @@ func (r Repository) UpdateScript(ctx context.Context, s accounting.Script) error
 	return nil
 }
 
-func (r Repository) FindScriptByID(ctx context.Context, orgID string, scriptID string) (accounting.Script, error) {
+func (r Repository) FindScriptByID(ctx context.Context, orgID string, scriptID string) (ledger.Config, error) {
 	input := &dynamodb.GetItemInput{
 		TableName: aws.String(r.tableName),
 		Key: map[string]types.AttributeValue{
@@ -110,22 +110,22 @@ func (r Repository) FindScriptByID(ctx context.Context, orgID string, scriptID s
 
 	result, err := r.client.GetItem(ctx, input)
 	if err != nil {
-		return accounting.Script{}, fmt.Errorf("failed to get item: %w", err)
+		return ledger.Config{}, fmt.Errorf("failed to get item: %w", err)
 	}
 
 	if result.Item == nil {
-		return accounting.Script{}, ErrScriptNotFound{}
+		return ledger.Config{}, ErrScriptNotFound{}
 	}
 
-	var script Script
+	var script Config
 	if err := attributevalue.UnmarshalMap(result.Item, &script); err != nil {
-		return accounting.Script{}, fmt.Errorf("failed to unmarshal config: %w", err)
+		return ledger.Config{}, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 
 	return script.toEntity(), nil
 }
 
-func (r Repository) FindScriptByLevel(ctx context.Context, level string, eventTypeID string, orgID string, programID *int64) (accounting.Script, error) {
+func (r Repository) FindScriptByLevel(ctx context.Context, level string, eventTypeID string, orgID string, programID *int64) (ledger.Config, error) {
 	filters := buildFilters(level, orgID, eventTypeID, *programID)
 	input := &dynamodb.QueryInput{
 		TableName:              aws.String(r.tableName),
@@ -141,22 +141,22 @@ func (r Repository) FindScriptByLevel(ctx context.Context, level string, eventTy
 
 	result, err := r.client.Query(ctx, input)
 	if err != nil {
-		return accounting.Script{}, fmt.Errorf("failed to get item: %w", err)
+		return ledger.Config{}, fmt.Errorf("failed to get item: %w", err)
 	}
 
 	if len(result.Items) == 0 {
-		return accounting.Script{}, ErrScriptNotFound{}
+		return ledger.Config{}, ErrScriptNotFound{}
 	}
 
-	var script Script
+	var script Config
 	if err := attributevalue.UnmarshalMap(result.Items[0], &script); err != nil {
-		return accounting.Script{}, fmt.Errorf("failed to unmarshal config: %w", err)
+		return ledger.Config{}, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 
 	return script.toEntity(), nil
 }
 
-func (r Repository) FindAllScripts(ctx context.Context, orgID string, programID *int64) ([]accounting.Script, error) {
+func (r Repository) FindAllScripts(ctx context.Context, orgID string, programID *int64) ([]ledger.Config, error) {
 	input := buildInputQuery(r.tableName, orgID)
 	if programID != nil {
 		input = buildInputQueryWithFilters(r.tableName, orgID, *programID)
@@ -171,10 +171,10 @@ func (r Repository) FindAllScripts(ctx context.Context, orgID string, programID 
 		return nil, ErrScriptNotFound{}
 	}
 
-	scripts := make([]accounting.Script, 0, len(result.Items))
+	scripts := make([]ledger.Config, 0, len(result.Items))
 
 	for _, m := range result.Items {
-		var script Script
+		var script Config
 		if err := attributevalue.UnmarshalMap(m, &script); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal script: %w", err)
 		}
@@ -197,7 +197,7 @@ func buildInputQuery(tableName string, orgID string) *dynamodb.QueryInput {
 }
 
 func buildInputQueryWithFilters(tableName string, orgID string, programID int64) *dynamodb.QueryInput {
-	filters := buildAllQuery(string(accounting.ProgramLevel), orgID, &programID)
+	filters := buildAllQuery(string(ledger.ProgramLevel), orgID, &programID)
 	return &dynamodb.QueryInput{
 		TableName:              aws.String(tableName),
 		IndexName:              aws.String("GSI-Index"),

@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/clodoaldomarques/ledger-config/internal/domain/accounting"
+	"github.com/clodoaldomarques/ledger-config/internal/domain/ledger"
 )
 
-type Script struct {
+type Config struct {
 	OrgID       string    `dynamodbav:"org_id"`
-	ScriptID    string    `dynamodbav:"script_id"`
+	ConfigID    string    `dynamodbav:"config_id"`
 	Filters     string    `dynamodbav:"filters"`
 	Level       string    `dynamodbav:"level"`
 	EventTypeID string    `dynamodbav:"event_type_id"`
@@ -23,14 +23,14 @@ type Script struct {
 	Version     int64     `dynamodbav:"version"`
 }
 
-func (s Script) toEntity() accounting.Script {
-	scr := accounting.Script{
-		ScriptID:    s.ScriptID,
-		Level:       accounting.Level(s.Level),
+func (s Config) toEntity() ledger.Config {
+	scr := ledger.Config{
+		ConfigID:    s.ConfigID,
+		Level:       ledger.Level(s.Level),
 		EventTypeID: s.EventTypeID,
 		OrgID:       s.OrgID,
 		Description: s.Description,
-		Entries:     make([]accounting.Entry, 0),
+		Entries:     make([]ledger.Entry, 0),
 		Enable:      s.Enable,
 		CreatedAt:   s.CreatedAt,
 		UpdatedAt:   s.UpdatedAt,
@@ -52,10 +52,10 @@ func (s Script) toEntity() accounting.Script {
 	return scr
 }
 
-func buildScriptTable(s accounting.Script) Script {
-	st := Script{
+func buildScriptTable(s ledger.Config) Config {
+	st := Config{
 		OrgID:       s.OrgID,
-		ScriptID:    s.ScriptID,
+		ConfigID:    s.ConfigID,
 		Filters:     buildFilters(string(s.Level), s.OrgID, s.EventTypeID, s.ProgramID),
 		Level:       string(s.Level),
 		EventTypeID: s.EventTypeID,
@@ -85,11 +85,11 @@ func buildScriptTable(s accounting.Script) Script {
 
 func buildFilters(level string, orgID string, eventTypeID string, programID int64) string {
 	switch level {
-	case string(accounting.PlatformLevel):
-		return fmt.Sprintf("TENANT#PISMO#PROGRAMID#0000#EVENTTYPEID#%s", eventTypeID)
-	case string(accounting.TenantLevel):
+	case string(ledger.PlatformLevel):
+		return fmt.Sprintf("TENANT#LEDGER#PROGRAMID#0000#EVENTTYPEID#%s", eventTypeID)
+	case string(ledger.TenantLevel):
 		return fmt.Sprintf("TENANT#%s#PROGRAMID#0000#EVENTTYPEID#%s", orgID, eventTypeID)
-	case string(accounting.ProgramLevel):
+	case string(ledger.ProgramLevel):
 		return fmt.Sprintf("TENANT#%s#PROGRAMID#%04d#EVENTTYPEID#%s", orgID, programID, eventTypeID)
 	default:
 		return fmt.Sprintf("TENANT#%s#PROGRAMID#0000#EVENTTYPEID#%s", orgID, eventTypeID)
@@ -98,11 +98,11 @@ func buildFilters(level string, orgID string, eventTypeID string, programID int6
 
 func buildAllQuery(level string, orgID string, programID *int64) string {
 	switch level {
-	case string(accounting.PlatformLevel):
-		return "TENANT#PISMO#PROGRAMID#0000#"
-	case string(accounting.TenantLevel):
+	case string(ledger.PlatformLevel):
+		return "TENANT#LEDGER#PROGRAMID#0000#"
+	case string(ledger.TenantLevel):
 		return fmt.Sprintf("TENANT#%s#PROGRAMID#0000#", orgID)
-	case string(accounting.ProgramLevel):
+	case string(ledger.ProgramLevel):
 		return fmt.Sprintf("TENANT#%s#PROGRAMID#%04d#", orgID, *programID)
 	default:
 		return fmt.Sprintf("TENANT#%s##PROGRAMID#0000#", orgID)
@@ -114,15 +114,15 @@ type Company struct {
 	Type string `dynamodbav:"type"`
 }
 
-func buildCompanyTable(c *accounting.Company) *Company {
+func buildCompanyTable(c *ledger.Company) *Company {
 	return &Company{
 		Code: c.Code,
 		Type: c.Type,
 	}
 }
 
-func (c Company) toEntity() *accounting.Company {
-	return &accounting.Company{
+func (c Company) toEntity() *ledger.Company {
+	return &ledger.Company{
 		Code: c.Code,
 		Type: c.Type,
 	}
@@ -135,7 +135,7 @@ type CostCenter struct {
 	CreditOrg  string `dynamodbav:"credit_org"`
 }
 
-func buildCostCenterTable(c *accounting.CostCenter) *CostCenter {
+func buildCostCenterTable(c *ledger.CostCenter) *CostCenter {
 	return &CostCenter{
 		DebitCost:  c.DebitCost,
 		DebitOrg:   c.DebitOrg,
@@ -144,8 +144,8 @@ func buildCostCenterTable(c *accounting.CostCenter) *CostCenter {
 	}
 }
 
-func (c CostCenter) toEntity() *accounting.CostCenter {
-	return &accounting.CostCenter{
+func (c CostCenter) toEntity() *ledger.CostCenter {
+	return &ledger.CostCenter{
 		DebitCost:  c.DebitCost,
 		DebitOrg:   c.DebitOrg,
 		CreditCost: c.CreditCost,
@@ -160,7 +160,7 @@ type Account struct {
 	Cosif       string `dynamodbav:"cosif"`
 }
 
-func buildAccountTable(a *accounting.Account) *Account {
+func buildAccountTable(a *ledger.Account) *Account {
 	return &Account{
 		Number:      a.Number,
 		Description: a.Description,
@@ -168,8 +168,8 @@ func buildAccountTable(a *accounting.Account) *Account {
 	}
 }
 
-func (a Account) toEntity() *accounting.Account {
-	return &accounting.Account{
+func (a Account) toEntity() *ledger.Account {
+	return &ledger.Account{
 		Number:      a.Number,
 		Description: a.Description,
 		Cosif:       a.Cosif,
@@ -190,7 +190,7 @@ type Entry struct {
 	Parameter     *Parameter  `dynamodbav:"parameter,omitempty"`
 }
 
-func buildEntryTable(e accounting.Entry) Entry {
+func buildEntryTable(e ledger.Entry) Entry {
 	et := Entry{
 		EntryTypeID:   e.EntryTypeID,
 		Flow:          e.Flow,
@@ -220,8 +220,8 @@ func buildEntryTable(e accounting.Entry) Entry {
 	return et
 }
 
-func (e Entry) toEntity() accounting.Entry {
-	et := accounting.Entry{
+func (e Entry) toEntity() ledger.Entry {
+	et := ledger.Entry{
 		EntryTypeID:   e.EntryTypeID,
 		Flow:          e.Flow,
 		Description:   e.Description,
@@ -255,15 +255,15 @@ type Parameter struct {
 	Value string `dynamodbav:"value"`
 }
 
-func buildParameterTable(p *accounting.Parameter) *Parameter {
+func buildParameterTable(p *ledger.Parameter) *Parameter {
 	return &Parameter{
 		Name:  p.Name,
 		Value: p.Value,
 	}
 }
 
-func (p Parameter) toEntity() *accounting.Parameter {
-	return &accounting.Parameter{
+func (p Parameter) toEntity() *ledger.Parameter {
+	return &ledger.Parameter{
 		Name:  p.Name,
 		Value: p.Value,
 	}

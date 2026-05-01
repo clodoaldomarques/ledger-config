@@ -1,4 +1,4 @@
-package accounting
+package ledger
 
 type CostCenter struct {
 	DebitCost  string

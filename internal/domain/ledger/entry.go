@@ -1,4 +1,4 @@
-package accounting
+package ledger
 
 type Flow = string
 

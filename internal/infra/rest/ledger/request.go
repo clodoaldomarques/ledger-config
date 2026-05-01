@@ -1,4 +1,4 @@
-package accounting
+package ledger
 
 import (
 	"errors"
@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/clodoaldomarques/ledger-config/internal/domain/accounting"
+	"github.com/clodoaldomarques/ledger-config/internal/domain/ledger"
 )
 
 var (
@@ -47,13 +47,13 @@ func (p PostScriptRequest) Validate() error {
 	return nil
 }
 
-func (p PostScriptRequest) PostToEntity(orgID string) accounting.Script {
-	scr := accounting.Script{
-		Level:       accounting.Level(p.Level),
+func (p PostScriptRequest) PostToEntity(orgID string) ledger.Config {
+	scr := ledger.Config{
+		Level:       ledger.Level(p.Level),
 		EventTypeID: strings.ToUpper(p.EventTypeID),
 		OrgID:       orgID,
 		Description: p.Description,
-		Entries:     make([]accounting.Entry, 0, len(p.Entries)),
+		Entries:     make([]ledger.Entry, 0, len(p.Entries)),
 		CreatedAt:   time.Now().UTC(),
 		UpdatedAt:   time.Now().UTC(),
 		Enable:      true,
@@ -100,11 +100,11 @@ func (p PathScriptRequest) Validate() error {
 	return nil
 }
 
-func (p PathScriptRequest) PatchToEntity(orgID string) accounting.Script {
-	scr := accounting.Script{
+func (p PathScriptRequest) PatchToEntity(orgID string) ledger.Config {
+	scr := ledger.Config{
 		OrgID:       orgID,
 		Description: p.Description,
-		Entries:     make([]accounting.Entry, 0, len(p.Entries)),
+		Entries:     make([]ledger.Entry, 0, len(p.Entries)),
 	}
 
 	if p.Company != nil {
@@ -127,8 +127,8 @@ type CompanyRequest struct {
 	Type string `json:"type,omitempty"`
 }
 
-func (c CompanyRequest) ToEntity() *accounting.Company {
-	return &accounting.Company{
+func (c CompanyRequest) ToEntity() *ledger.Company {
+	return &ledger.Company{
 		Code: c.Code,
 		Type: c.Type,
 	}
@@ -150,8 +150,8 @@ func (a AccountRequest) Validate() error {
 	return nil
 }
 
-func (a AccountRequest) ToEntity() *accounting.Account {
-	return &accounting.Account{
+func (a AccountRequest) ToEntity() *ledger.Account {
+	return &ledger.Account{
 		Number:      a.Number,
 		Description: a.Description,
 		Cosif:       a.Cosif,
@@ -181,8 +181,8 @@ func (c CostCenterRequest) Validate() error {
 	return nil
 }
 
-func (c CostCenterRequest) ToEntity() *accounting.CostCenter {
-	return &accounting.CostCenter{
+func (c CostCenterRequest) ToEntity() *ledger.CostCenter {
+	return &ledger.CostCenter{
 		DebitCost:  c.DebitCost,
 		DebitOrg:   c.DebitOrg,
 		CreditCost: c.CreditCost,
@@ -204,8 +204,8 @@ type EntryRequest struct {
 	Parameter     *ParameterRequest  `json:"parameter,omitempty"`
 }
 
-func (e EntryRequest) ToEntity() accounting.Entry {
-	entry := accounting.Entry{
+func (e EntryRequest) ToEntity() ledger.Entry {
+	entry := ledger.Entry{
 		EntryTypeID:   e.EntryTypeID,
 		Flow:          e.Flow,
 		Description:   e.Description,
@@ -282,8 +282,8 @@ func (p ParameterRequest) Validate() error {
 	return nil
 }
 
-func (p ParameterRequest) ToEntity() *accounting.Parameter {
-	return &accounting.Parameter{
+func (p ParameterRequest) ToEntity() *ledger.Parameter {
+	return &ledger.Parameter{
 		Name:  p.Name,
 		Value: p.Value,
 	}

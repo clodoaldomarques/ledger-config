@@ -2,7 +2,7 @@
 // Source: interfaces.go
 
 // Package accounting is a generated GoMock package.
-package accounting
+package ledger
 
 import (
 	context "context"
@@ -35,10 +35,10 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // FindAllScripts mocks base method.
-func (m *MockRepository) FindAllScripts(ctx context.Context, orgID string, programID *int64) ([]Script, error) {
+func (m *MockRepository) FindAllScripts(ctx context.Context, orgID string, programID *int64) ([]Config, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindAllScripts", ctx, orgID, programID)
-	ret0, _ := ret[0].([]Script)
+	ret0, _ := ret[0].([]Config)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -50,10 +50,10 @@ func (mr *MockRepositoryMockRecorder) FindAllScripts(ctx, orgID, programID inter
 }
 
 // FindScriptByID mocks base method.
-func (m *MockRepository) FindScriptByID(ctx context.Context, orgID, scriptID string) (Script, error) {
+func (m *MockRepository) FindScriptByID(ctx context.Context, orgID, scriptID string) (Config, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindScriptByID", ctx, orgID, scriptID)
-	ret0, _ := ret[0].(Script)
+	ret0, _ := ret[0].(Config)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -65,10 +65,10 @@ func (mr *MockRepositoryMockRecorder) FindScriptByID(ctx, orgID, scriptID interf
 }
 
 // FindScriptByLevel mocks base method.
-func (m *MockRepository) FindScriptByLevel(ctx context.Context, level, eventTypeID, orgID string, programID *int64) (Script, error) {
+func (m *MockRepository) FindScriptByLevel(ctx context.Context, level, eventTypeID, orgID string, programID *int64) (Config, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindScriptByLevel", ctx, level, eventTypeID, orgID, programID)
-	ret0, _ := ret[0].(Script)
+	ret0, _ := ret[0].(Config)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -80,7 +80,7 @@ func (mr *MockRepositoryMockRecorder) FindScriptByLevel(ctx, level, eventTypeID,
 }
 
 // SaveScript mocks base method.
-func (m *MockRepository) SaveScript(ctx context.Context, s Script) error {
+func (m *MockRepository) SaveScript(ctx context.Context, s Config) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SaveScript", ctx, s)
 	ret0, _ := ret[0].(error)
@@ -94,7 +94,7 @@ func (mr *MockRepositoryMockRecorder) SaveScript(ctx, s interface{}) *gomock.Cal
 }
 
 // UpdateScript mocks base method.
-func (m *MockRepository) UpdateScript(ctx context.Context, s Script) error {
+func (m *MockRepository) UpdateScript(ctx context.Context, s Config) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateScript", ctx, s)
 	ret0, _ := ret[0].(error)
