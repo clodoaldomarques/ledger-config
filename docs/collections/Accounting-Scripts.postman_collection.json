@@ -1,0 +1,424 @@
+{
+	"info": {
+		"_postman_id": "9d488980-37a2-4cc8-a408-eabd82c2104c",
+		"name": "Accounting-Scripts",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "14021863"
+	},
+	"item": [
+		{
+			"name": "Create Accounting Script - TENANT",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const jsonData = JSON.parse(responseBody);",
+							"",
+							"pm.environment.set(\"scriptID\", jsonData.script_id)"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-cid",
+						"value": "{{$randomUUID}}",
+						"type": "text"
+					},
+					{
+						"key": "x-tenant",
+						"value": "{{tenant-01}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"level\" : \"tenant\",\n    \"event_type_id\" : \"101\",\n    \"description\" : \"Parcelamento xpto\",\n    \"entries\" : [\n        {\n            \"entry_type_id\" : 1001,\n            \"flow\" : \"regular\",\n            \"description\" : \"Parcelamento\",\n            \"expression\": \"Amount.amount\",\n            \"cost_center\" : {\n                \"debit_cost\" : \"debit_cost1\",\n                \"debit_org\": \"debit_org1\",\n                \"credit_cost\" : \"credit_cost1\",\n                \"credit_org\" : \"credit_org1\"\n            }\n        },\n        {\n            \"entry_type_id\" : 1002,\n            \"flow\" : \"migration\",\n            \"description\" : \"Parcelamento\",\n            \"expression\" : \"Amount.amount + Fee.iof\",\n            \"credit_account\" : {\n                \"number\" : \"123.345.456\",\n                \"description\" : \"contra de credito\",\n                \"cosif\" : \"00000\"\n            },\n            \"debit_account\" : {\n                \"number\" : \"456.789.012\",\n                \"description\" : \"contra de debito\",\n                \"cosif\" : \"00000\"\n            }\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{accounting-scripts-host}}/v1/accounting/scripts",
+					"host": [
+						"{{accounting-scripts-host}}"
+					],
+					"path": [
+						"v1",
+						"accounting",
+						"scripts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Accounting Script - PROGRAM",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const jsonData = JSON.parse(responseBody);",
+							"",
+							"pm.environment.set(\"scriptID\", jsonData.script_id)"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-cid",
+						"value": "{{$randomUUID}}",
+						"type": "text"
+					},
+					{
+						"key": "x-tenant",
+						"value": "{{tenant-01}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"level\" : \"program\",\n    \"event_type_id\" : \"0056\",\n    \"program_id\" : 400,\n    \"description\" : \"Parcelamento xpto\",\n    \"entries\" : [\n        {\n            \"entry_type_id\" : 1001,\n            \"flow\" : \"regular\",\n            \"description\" : \"Parcelamento\",\n            \"expression\" : \"Amount.amount - Fee.iof\",\n            \"parameter\" : {\n                \"name\" : \"classificatio\",\n                \"value\" : \"3\"\n            }\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{accounting-scripts-host}}/v1/accounting/scripts",
+					"host": [
+						"{{accounting-scripts-host}}"
+					],
+					"path": [
+						"v1",
+						"accounting",
+						"scripts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Accounting Script - PLATFORM",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const jsonData = JSON.parse(responseBody);",
+							"",
+							"pm.environment.set(\"scriptID\", jsonData.script_id)"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-cid",
+						"value": "{{$randomUUID}}",
+						"type": "text"
+					},
+					{
+						"key": "x-tenant",
+						"value": "{{tenant-pismo}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"level\" : \"platform\",\n    \"event_type_id\" : \"702\",\n    \"description\" : \"Parcelamento xpto\",\n    \"entries\" : [\n        {\n            \"entry_type_id\" : 1001,\n            \"flow\" : \"regular\",\n            \"description\" : \"Parcelamento\",\n            \"amount_name\" : \"amount\",\n            \"parameter\" : {\n                \"name\" : \"classificatio\",\n                \"value\" : \"3\"\n            }\n        },\n        {\n            \"entry_type_id\" : 1002,\n            \"flow\" : \"migration\",\n            \"description\" : \"Parcelamento\",\n            \"amount_name\" : \"duo_date\",\n            \"parameter\" : {\n                \"name\" : \"classificatio\",\n                \"value\" : \"2\"\n            }\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{accounting-scripts-host}}/v1/accounting/scripts",
+					"host": [
+						"{{accounting-scripts-host}}"
+					],
+					"path": [
+						"v1",
+						"accounting",
+						"scripts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Accounting Script",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const jsonData = JSON.parse(responseBody);",
+							"",
+							"pm.environment.set(\"accountID\", jsonData.account_id)"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "x-cid",
+						"value": "{{$randomUUID}}",
+						"type": "text"
+					},
+					{
+						"key": "x-tenant",
+						"value": "{{orgID}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"description\" : \"Parcelamento xpto\",\n    \"entries\" : [\n        {\n            \"entry_type_id\" : 1001,\n            \"description\" : \"Parcelamento\",\n            \"amount_name\" : \"AmountName\",\n            \"parameter\" : {\n                \"name\" : \"classification\",\n                \"value\" : \"3\"\n            }\n        },\n        {\n            \"entry_type_id\" : 1002,\n            \"description\" : \"Parcelamento\",\n            \"amount_name\" : \"DuoDate\",\n            \"parameter\" : {\n                \"name\" : \"classificatio\",\n                \"value\" : \"2\"\n            }\n        },\n        {\n            \"entry_type_id\" : 1003,\n            \"description\" : \"Parcelamento\",\n            \"amount_name\" : \"DuoDate\",\n            \"parameter\" : {\n                \"name\" : \"classificatio\",\n                \"value\" : \"2\"\n            }\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}:{{port}}/v1/accounting/scripts/:script_id",
+					"host": [
+						"{{host}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"v1",
+						"accounting",
+						"scripts",
+						":script_id"
+					],
+					"variable": [
+						{
+							"key": "script_id",
+							"value": "{{scriptID}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Disable Accounting Script",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const jsonData = JSON.parse(responseBody);",
+							"",
+							"pm.environment.set(\"accountID\", jsonData.account_id)"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "x-cid",
+						"value": "{{$randomUUID}}",
+						"type": "text"
+					},
+					{
+						"key": "x-tenant",
+						"value": "{{orgID}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}:{{port}}/v1/accounting/scripts/:script_id/disable",
+					"host": [
+						"{{host}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"v1",
+						"accounting",
+						"scripts",
+						":script_id",
+						"disable"
+					],
+					"variable": [
+						{
+							"key": "script_id",
+							"value": "{{scriptID}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Accounting Script",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const jsonData = JSON.parse(responseBody);",
+							"",
+							"pm.environment.set(\"accountID\", jsonData.account_id)"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "x-cid",
+						"value": "{{$randomUUID}}",
+						"type": "text"
+					},
+					{
+						"key": "x-tenant",
+						"value": "{{tenant-01}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"description\" : \"Parcelamento xpto\",\n    \"entries\" : [\n        {\n            \"entry_type_id\" : 1001,\n            \"description\" : \"Parcelamento\",\n            \"amount_name\" : \"AmountName\"\n        },\n        {\n            \"entry_type_id\" : 1002,\n            \"description\" : \"Parcelamento\",\n            \"amount_name\" : \"DuoDate\",\n            \"parameter\" : {\n                \"name\" : \"classificatio\",\n                \"value\" : \"2\"\n            }\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{accounting-scripts-host}}/v1/accounting/scripts/:event_type_id/:program_id",
+					"host": [
+						"{{accounting-scripts-host}}"
+					],
+					"path": [
+						"v1",
+						"accounting",
+						"scripts",
+						":event_type_id",
+						":program_id"
+					],
+					"variable": [
+						{
+							"key": "event_type_id",
+							"value": "101"
+						},
+						{
+							"key": "program_id",
+							"value": "400"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get All Accounting Script By Tenant",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const jsonData = JSON.parse(responseBody);",
+							"",
+							"pm.environment.set(\"accountID\", jsonData.account_id)"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "x-cid",
+						"value": "{{$randomUUID}}",
+						"type": "text"
+					},
+					{
+						"key": "x-tenant",
+						"value": "{{orgID}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"description\" : \"Parcelamento xpto\",\n    \"entries\" : [\n        {\n            \"entry_type_id\" : 1001,\n            \"description\" : \"Parcelamento\",\n            \"amount_name\" : \"AmountName\"\n        },\n        {\n            \"entry_type_id\" : 1002,\n            \"description\" : \"Parcelamento\",\n            \"amount_name\" : \"DuoDate\",\n            \"parameter\" : {\n                \"name\" : \"classificatio\",\n                \"value\" : \"2\"\n            }\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}:{{port}}/v1/accounting/scripts",
+					"host": [
+						"{{host}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"v1",
+						"accounting",
+						"scripts"
+					],
+					"query": [
+						{
+							"key": "program_id",
+							"value": "400",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

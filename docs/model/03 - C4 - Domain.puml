@@ -1,0 +1,68 @@
+@startuml 03 - C4 - Domain Diagram
+!include <C4/C4_Component>
+
+class Script {
+  - ScriptId : string
+  - Level: string
+  - EventTypeID: string
+  - OrgID: string
+  - ProgramID: int
+  - Description: string
+  - Company: Company
+  - Entries: Entry[]
+  - Enable: bool
+  - CreatedAt: datetime
+  - UpdatedAt: datetime
+  - Version: int
+  + Validate()
+}
+
+class Company {
+	- Code: string
+	- Type: string
+	+ Validate()
+}
+
+class Account {
+	- Type: string
+	- Number: string
+	- Description: string
+	- Cosif: string
+	+ Validate()
+}
+
+class CostCenter { 
+	- DebitCost:  string
+	- DebitOrg:   string
+	- CreditCost: string
+	- CreditOrg:  string
+	+ Validate()
+}
+
+class Entry { 
+	- EntryTypeID:   int
+	- Description:   string
+	- AmountName:    string
+	- Expression:    string
+	- CashInBucket:  string
+	- CashOutBucket: string
+	- CostCenter: CostCenter
+	- DebitAccount: Account
+	- CreditAccount: Account
+	- Parameter:     Parameter[]
+	+ Validate()
+}
+class Parameter {
+	- Name:  string
+	- Value: string
+	+ Validate()
+}
+
+Script "1" *-- "0..1" Company
+Script "1" *-- "1..*" Entry     
+Entry "1" *-- "0..1" CostCenter
+Entry "1" *-- "0..1" Account : DebitAccount
+Entry "1" *-- "0..1" Account : CreditAccount 
+Entry  "1" *-- "0..*" Parameter 
+
+@enduml

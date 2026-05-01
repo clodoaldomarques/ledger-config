@@ -1,0 +1,30 @@
+@startuml C4 - Diagrama Container
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!define ICONURL https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/v2.4.0
+!includeurl ICONURL/devicons/go.puml
+
+AddRelTag("async", $lineStyle = DashedLine())
+SHOW_PERSON_PORTRAIT()
+
+Person_Ext(bank, "Agentes Financeiros", "Cliente externo que irá customizar os roteiros contábeis ou consultar um determinado evento contábel")
+System_Ext(datalake, "Sistema de Relatórios", "Sistema que gerencia os relatórios financeiros e contábeis")
+
+System_Boundary(financial_accounting, "Sistema de Contabilidade"){
+    Container_Ext(events, "Serviço de Eventos Contábeis", "Gerencia os lançamentos contábeis processados pela plataforma")
+
+    System_Boundary(scripts, "Serviço de Roteiros Contábeis"){
+        Container(accounting_scripts, "Serviço Gerenciamento de Roteiros Contábeis", "Golang", "Gerencia os roteiros contábeis customizados pelo cliente", $sprite = "go")
+        ContainerDb(dynamoDB, "Banco de dados", "DynamoDB", "Armazena os dados dos roteiros contábeis")
+        ContainerQueue(sns_scripts, "Servidor de Mensagens", "SNS", "Notifica outros serviços sobre criação ou mudanças nos roteiros contábeis")
+
+        Rel_D(accounting_scripts, dynamoDB, "Consome dados da transação publicados no tópico", "JSON", $tags = "async")
+        Rel_D(accounting_scripts, sns_scripts, "Consome os dados enfileirados", "JSON", $tags = "async")
+    }
+    Rel_R(events, accounting_scripts, "")
+}
+
+Rel_D(bank, accounting_scripts, "Customiza um roteiro contábel", "JSON")
+Rel_D(bank, events, "Consulta os lançamentos contábeis, ou efetuar um lançamento contábil avulso", "JSON")
+Rel_U(datalake, sns_scripts, "Subscribe tópico para processar as mudanças nos roteiros", "SMS", $tags = "async")
+
+@enduml
