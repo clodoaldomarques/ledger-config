@@ -1,10 +1,10 @@
 package ledger
 
-type ErrDuplicatedEntry struct {
+type ErrDuplicatedScript struct {
 	msg string
 }
 
-func (e ErrDuplicatedEntry) Error() string {
+func (e ErrDuplicatedScript) Error() string {
 	if e.msg == "" {
 		return "duplicated entry"
 	}

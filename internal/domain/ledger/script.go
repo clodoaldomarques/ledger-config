@@ -1,5 +1,7 @@
 package ledger
 
+import "fmt"
+
 type Flow = string
 
 const (
@@ -12,11 +14,14 @@ type Script struct {
 	Flow          Flow
 	Description   string
 	Expression    string
-	CostCenter    *CostCenter
 	DebitAccount  *Account
 	CreditAccount *Account
 }
 
-func (e Script) Validate() error {
+func (s Script) ScriptKey() string {
+	return fmt.Sprintf("%1s#%2d", s.Flow, s.ScriptID)
+}
+
+func (s Script) Validate() error {
 	return nil
 }

@@ -9,12 +9,11 @@ import (
 type ConfigResponse struct {
 	ConfigID    string           `json:"config_id"`
 	Level       string           `json:"level"`
-	EventTypeID string           `json:"event_type_id"`
+	ProcessCode string           `json:"process_code"`
 	OrgID       string           `json:"org_id"`
 	ProgramID   *int64           `json:"program_id,omitempty"`
 	Description string           `json:"description"`
-	Company     *CompanyResponse `json:"company,omitempty"`
-	Entries     []ScriptResponse `json:"entries"`
+	Scripts     []ScriptResponse `json:"scripts"`
 	Enable      bool             `json:"enable"`
 	CreatedAt   time.Time        `json:"created_at"`
 	UpdatedAt   time.Time        `json:"updated_at"`
@@ -25,7 +24,7 @@ func buildConfigResponse(s ledger.Config) ConfigResponse {
 	sr := ConfigResponse{
 		ConfigID:    s.ConfigID,
 		Level:       string(s.Level),
-		EventTypeID: s.EventTypeID,
+		ProcessCode: s.ProcessCode,
 		OrgID:       s.OrgID,
 		Description: s.Description,
 		Enable:      s.Enable,
@@ -38,29 +37,13 @@ func buildConfigResponse(s ledger.Config) ConfigResponse {
 		sr.ProgramID = &s.ProgramID
 	}
 
-	if s.Company != nil {
-		sr.Company = buildCompanyResponse(s.Company)
-	}
-
 	for _, e := range s.Scripts {
 		er := buildScriptResponse(e)
-		sr.Entries = append(sr.Entries, er)
+		sr.Scripts = append(sr.Scripts, er)
 	}
 
 	return sr
 
-}
-
-type CompanyResponse struct {
-	Code string `json:"code,omitempty"`
-	Type string `json:"type,omitempty"`
-}
-
-func buildCompanyResponse(c *ledger.Company) *CompanyResponse {
-	return &CompanyResponse{
-		Code: c.Code,
-		Type: c.Type,
-	}
 }
 
 type AccountResponse struct {
@@ -77,31 +60,13 @@ func buildAccountResponse(a *ledger.Account) *AccountResponse {
 	}
 }
 
-type CostCenterResponse struct {
-	DebitCost  string `json:"debit_cost"`
-	DebitOrg   string `json:"debit_org"`
-	CreditCost string `json:"credit_cost"`
-	CreditOrg  string `json:"credit_org"`
-}
-
-func buildCostCenterResponse(c *ledger.CostCenter) *CostCenterResponse {
-	return &CostCenterResponse{
-		DebitCost:  c.DebitCost,
-		DebitOrg:   c.DebitOrg,
-		CreditCost: c.CreditCost,
-		CreditOrg:  c.CreditOrg,
-	}
-
-}
-
 type ScriptResponse struct {
-	ScriptID      int64               `json:"script_id"`
-	Flow          string              `json:"flow"`
-	Description   string              `json:"description"`
-	Expression    string              `json:"expression,omitempty"`
-	CostCenter    *CostCenterResponse `json:"cost_center,omitempty"`
-	DebitAccount  *AccountResponse    `json:"debit_account,omitempty"`
-	CreditAccount *AccountResponse    `json:"credit_account,omitempty"`
+	ScriptID      int64            `json:"script_id"`
+	Flow          string           `json:"flow"`
+	Description   string           `json:"description"`
+	Expression    string           `json:"expression,omitempty"`
+	DebitAccount  *AccountResponse `json:"debit_account,omitempty"`
+	CreditAccount *AccountResponse `json:"credit_account,omitempty"`
 }
 
 func buildScriptResponse(e ledger.Script) ScriptResponse {
@@ -110,10 +75,6 @@ func buildScriptResponse(e ledger.Script) ScriptResponse {
 		Flow:        e.Flow,
 		Description: e.Description,
 		Expression:  e.Expression,
-	}
-
-	if e.CostCenter != nil {
-		er.CostCenter = buildCostCenterResponse(e.CostCenter)
 	}
 
 	if e.DebitAccount != nil {

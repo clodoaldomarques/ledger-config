@@ -129,6 +129,7 @@ func TestService_UpdateScript(t *testing.T) {
 				fs := fakeScript(PlatformLevel, "201", "PAGAMENTO A VISTA")
 				fs.Scripts = append(fs.Scripts, Script{
 					ScriptID:    401,
+					Flow:        Regular,
 					Description: "IOF",
 					Expression:  "amount",
 				})
@@ -136,7 +137,7 @@ func TestService_UpdateScript(t *testing.T) {
 			},
 			want: func(t *testing.T, scr Config, e error) {
 				assert.NotNil(t, e)
-				assert.Equal(t, "duplicated entry: 401 - IOF", e.Error())
+				assert.Equal(t, "duplicated script: regular - 401 - IOF", e.Error())
 			},
 		},
 		{
@@ -209,7 +210,7 @@ func TestService_FindScriptByLevel(t *testing.T) {
 			want: func(t *testing.T, sc Config, e error) {
 				assert.Nil(t, e)
 				assert.Equal(t, ProgramLevel, sc.Level)
-				assert.Equal(t, "201", sc.EventTypeID)
+				assert.Equal(t, "201", sc.ProcessCode)
 				assert.Equal(t, "TN-77add76c-e395-446b-b306-1a0f9cb99a31", sc.OrgID)
 				assert.Equal(t, int64(1), sc.ProgramID)
 				assert.Equal(t, int64(1), sc.Version)
@@ -233,7 +234,7 @@ func TestService_FindScriptByLevel(t *testing.T) {
 			want: func(t *testing.T, sc Config, e error) {
 				assert.Nil(t, e)
 				assert.Equal(t, TenantLevel, sc.Level)
-				assert.Equal(t, "201", sc.EventTypeID)
+				assert.Equal(t, "201", sc.ProcessCode)
 				assert.Equal(t, "TN-77add76c-e395-446b-b306-1a0f9cb99a31", sc.OrgID)
 				assert.Equal(t, int64(1), sc.Version)
 			},
@@ -256,7 +257,7 @@ func TestService_FindScriptByLevel(t *testing.T) {
 			want: func(t *testing.T, sc Config, e error) {
 				assert.Nil(t, e)
 				assert.Equal(t, PlatformLevel, sc.Level)
-				assert.Equal(t, "201", sc.EventTypeID)
+				assert.Equal(t, "201", sc.ProcessCode)
 				assert.Equal(t, int64(1), sc.Version)
 			},
 		},
@@ -362,22 +363,20 @@ func fakeScript(level Level, event string, description string) Config {
 	return Config{
 		ConfigID:    "script-1234",
 		Level:       level,
-		EventTypeID: event,
+		ProcessCode: event,
 		OrgID:       "TN-77add76c-e395-446b-b306-1a0f9cb99a31",
 		ProgramID:   1,
 		Description: description,
-		Company: &Company{
-			Code: "1234",
-			Type: "BR",
-		},
 		Scripts: []Script{
 			{
 				ScriptID:    e,
+				Flow:        Regular,
 				Description: description,
 				Expression:  "Amount.amount",
 			},
 			{
 				ScriptID:    401,
+				Flow:        Regular,
 				Description: "IOF",
 				Expression:  "Amount.amount",
 			},

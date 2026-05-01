@@ -20,11 +20,10 @@ const (
 type Config struct {
 	ConfigID    string
 	Level       Level
-	EventTypeID string
+	ProcessCode string
 	OrgID       string
 	ProgramID   int64
 	Description string
-	Company     *Company
 	Scripts     []Script
 	Enable      bool
 	CreatedAt   time.Time
@@ -32,45 +31,42 @@ type Config struct {
 	Version     int64
 }
 
-func (s Config) Validate() error {
-	switch s.Level {
+func (c Config) Validate() error {
+	switch c.Level {
 	case TenantLevel:
-		if s.ProgramID != 0 {
+		if c.ProgramID != 0 {
 			return fmt.Errorf("program_id is not required for level: %s", string(TenantLevel))
 		}
-		if s.OrgID == "" {
+		if c.OrgID == "" {
 			return fmt.Errorf("org_id is required for level: %s", string(TenantLevel))
 		}
 	case ProgramLevel:
-		if s.OrgID == "" || s.ProgramID == 0 {
+		if c.OrgID == "" || c.ProgramID == 0 {
 			return fmt.Errorf("org_id and program_id are required for level: %s", string(ProgramLevel))
 		}
 	case PlatformLevel:
-		if s.OrgID != PlatformTenant {
-			return fmt.Errorf("this tenant %s can not create %s level script", s.OrgID, s.Level)
-		}
-		if s.Company != nil {
-			return fmt.Errorf("company not required to %v level", PlatformLevel)
+		if c.OrgID != PlatformTenant {
+			return fmt.Errorf("this tenant %s can not create %s level script", c.OrgID, c.Level)
 		}
 	default:
-		return fmt.Errorf("invalid script level %v, chose tenant or program", s.Level)
+		return fmt.Errorf("invalid script level %v, chose tenant or program", c.Level)
 	}
 
-	if err := validateScript(s.Scripts); err != nil {
+	if err := validateScript(c.Scripts); err != nil {
 		return err
 	}
 	return nil
 }
 
-func validateScript(entries []Script) error {
-	m := make(map[int64]any)
-	for _, e := range entries {
-		if _, has := m[e.ScriptID]; has {
-			return ErrDuplicatedEntry{msg: fmt.Sprintf("duplicated entry: %d - %s", e.ScriptID, e.Description)}
+func validateScript(scripts []Script) error {
+	m := make(map[string]any)
+	for _, s := range scripts {
+		if _, has := m[s.ScriptKey()]; has {
+			return ErrDuplicatedScript{msg: fmt.Sprintf("duplicated script: %1s - %2d - %3s", s.Flow, s.ScriptID, s.Description)}
 		}
-		m[e.ScriptID] = e
+		m[s.ScriptKey()] = s
 
-		if err := e.Validate(); err != nil {
+		if err := s.Validate(); err != nil {
 			return err
 		}
 	}

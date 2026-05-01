@@ -12,11 +12,10 @@ type Config struct {
 	ConfigID    string    `dynamodbav:"config_id"`
 	Filters     string    `dynamodbav:"filters"`
 	Level       string    `dynamodbav:"level"`
-	EventTypeID string    `dynamodbav:"event_type_id"`
+	ProcessCode string    `dynamodbav:"process_code"`
 	ProgramID   *int64    `dynamodbav:"program_id,omitempty"`
-	Description string    `dynamodbav:"description_id"`
-	Company     *Company  `dynamodbav:"company,omitempty"`
-	Entries     []Script  `dynamodbav:"entries"`
+	Description string    `dynamodbav:"description"`
+	Scripts     []Script  `dynamodbav:"scripts"`
 	Enable      bool      `dynamodbav:"enable"`
 	CreatedAt   time.Time `dynamodbav:"created_at"`
 	UpdatedAt   time.Time `dynamodbav:"updated_at"`
@@ -27,7 +26,7 @@ func (s Config) toEntity() ledger.Config {
 	scr := ledger.Config{
 		ConfigID:    s.ConfigID,
 		Level:       ledger.Level(s.Level),
-		EventTypeID: s.EventTypeID,
+		ProcessCode: s.ProcessCode,
 		OrgID:       s.OrgID,
 		Description: s.Description,
 		Scripts:     make([]ledger.Script, 0),
@@ -41,11 +40,7 @@ func (s Config) toEntity() ledger.Config {
 		scr.ProgramID = *s.ProgramID
 	}
 
-	if s.Company != nil {
-		scr.Company = s.Company.toEntity()
-	}
-
-	for _, e := range s.Entries {
+	for _, e := range s.Scripts {
 		scr.Scripts = append(scr.Scripts, e.toEntity())
 	}
 
@@ -56,11 +51,11 @@ func buildConfigTable(s ledger.Config) Config {
 	st := Config{
 		OrgID:       s.OrgID,
 		ConfigID:    s.ConfigID,
-		Filters:     buildFilters(string(s.Level), s.OrgID, s.EventTypeID, s.ProgramID),
+		Filters:     buildFilters(string(s.Level), s.OrgID, s.ProcessCode, s.ProgramID),
 		Level:       string(s.Level),
-		EventTypeID: s.EventTypeID,
+		ProcessCode: s.ProcessCode,
 		Description: s.Description,
-		Entries:     make([]Script, 0),
+		Scripts:     make([]Script, 0),
 		Enable:      s.Enable,
 		CreatedAt:   s.CreatedAt,
 		UpdatedAt:   s.UpdatedAt,
@@ -71,13 +66,9 @@ func buildConfigTable(s ledger.Config) Config {
 		st.ProgramID = &s.ProgramID
 	}
 
-	if s.Company != nil {
-		st.Company = buildCompanyTable(s.Company)
-	}
-
 	for _, e := range s.Scripts {
 		et := buildScriptTable(e)
-		st.Entries = append(st.Entries, et)
+		st.Scripts = append(st.Scripts, et)
 	}
 
 	return st
@@ -109,50 +100,6 @@ func buildAllQuery(level string, orgID string, programID *int64) string {
 	}
 }
 
-type Company struct {
-	Code string `dynamodbav:"code"`
-	Type string `dynamodbav:"type"`
-}
-
-func buildCompanyTable(c *ledger.Company) *Company {
-	return &Company{
-		Code: c.Code,
-		Type: c.Type,
-	}
-}
-
-func (c Company) toEntity() *ledger.Company {
-	return &ledger.Company{
-		Code: c.Code,
-		Type: c.Type,
-	}
-}
-
-type CostCenter struct {
-	DebitCost  string `dynamodbav:"debit_cost"`
-	DebitOrg   string `dynamodbav:"debit_org"`
-	CreditCost string `dynamodbav:"credit_cost"`
-	CreditOrg  string `dynamodbav:"credit_org"`
-}
-
-func buildCostCenterTable(c *ledger.CostCenter) *CostCenter {
-	return &CostCenter{
-		DebitCost:  c.DebitCost,
-		DebitOrg:   c.DebitOrg,
-		CreditCost: c.CreditCost,
-		CreditOrg:  c.CreditOrg,
-	}
-}
-
-func (c CostCenter) toEntity() *ledger.CostCenter {
-	return &ledger.CostCenter{
-		DebitCost:  c.DebitCost,
-		DebitOrg:   c.DebitOrg,
-		CreditCost: c.CreditCost,
-		CreditOrg:  c.CreditOrg,
-	}
-}
-
 type Account struct {
 	Type        string `dynamodbav:"type"`
 	Number      string `dynamodbav:"number"`
@@ -177,14 +124,13 @@ func (a Account) toEntity() *ledger.Account {
 }
 
 type Script struct {
-	ScriptID      int64       `dynamodbav:"script_id"`
-	Flow          string      `dynamodbav:"flow"`
-	Description   string      `dynamodbav:"description"`
-	AmountName    string      `dynamodbav:"amount_name"`
-	Expression    string      `dynamodbav:"expression"`
-	CostCenter    *CostCenter `dynamodbav:"cost_center,omitempty"`
-	DebitAccount  *Account    `dynamodbav:"debit_account,omitempty"`
-	CreditAccount *Account    `dynamodbav:"credit_account,omitempty"`
+	ScriptID      int64    `dynamodbav:"script_id"`
+	Flow          string   `dynamodbav:"flow"`
+	Description   string   `dynamodbav:"description"`
+	AmountName    string   `dynamodbav:"amount_name"`
+	Expression    string   `dynamodbav:"expression"`
+	DebitAccount  *Account `dynamodbav:"debit_account,omitempty"`
+	CreditAccount *Account `dynamodbav:"credit_account,omitempty"`
 }
 
 func buildScriptTable(e ledger.Script) Script {
@@ -193,10 +139,6 @@ func buildScriptTable(e ledger.Script) Script {
 		Flow:        e.Flow,
 		Description: e.Description,
 		Expression:  e.Expression,
-	}
-
-	if e.CostCenter != nil {
-		et.CostCenter = buildCostCenterTable(e.CostCenter)
 	}
 
 	if e.DebitAccount != nil {
@@ -216,10 +158,6 @@ func (e Script) toEntity() ledger.Script {
 		Flow:        e.Flow,
 		Description: e.Description,
 		Expression:  e.Expression,
-	}
-
-	if e.CostCenter != nil {
-		et.CostCenter = e.CostCenter.toEntity()
 	}
 
 	if e.CreditAccount != nil {

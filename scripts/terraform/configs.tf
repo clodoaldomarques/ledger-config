@@ -7,28 +7,28 @@ resource "aws_dynamodb_table_item" "ledger-101" {
     "config_id"   = { "S" =  "ledger-101" },
     "filters"     = { "S" = "TENANT#LEDGER#PROGRAMID#0000#EVENTTYPEID#101" },
     "org_id"      = { "S" = "LEDGER" },
-    "description_id" = { "S" = "Parcelamento xpto" },
+    "description" = { "S" = "Compra a vista" },
     "level"       = { "S" = "platform" },
     "enable"      = { "BOOL" = true },
     "version"     = { "N" = "2" },
-    "event_type_id" = { "S" = "101" },
+    "process_code" = { "S" = "101" },
     "created_at"  = { "S" = timestamp() },
     "updated_at"  = { "S" = timestamp() },
-    "entries"     = { "L" : [
+    "scripts"     = { "L" : [
       {
         "M" : {
-          "amount_name"    : { "S" : "amount" },
-          "entry_type_id" : { "N" : "101" },
-          "description"   : { "S" : "Parcelamento" },
+          "expression"    : { "S" : "Amount.amount + Fee.iof" },
+          "script_id"     : { "N" : "101" },
+          "description"   : { "S" : "Compra a vista - Cartão" },
           "flow"          : { "S" : "regular" },
         }
       },
       {
         "M" : {
-          "expression"     : { "S" : "Amount.amount + Fee.iof" },
-          "entry_type_id" : { "N" : "102" },
-          "description"   : { "S" : "Parcelamento" },
-          "flow"          : { "S" : "migration" },
+          "expression"     : { "S" : "Amount.amount" },
+          "script_id"      : { "N" : "101" },
+          "description"    : { "S" : "Compra a vista - PIX" },
+          "flow"           : { "S" : "migration" },
         }
       }
     ]}

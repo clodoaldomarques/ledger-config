@@ -18,7 +18,7 @@ func New(r Repository) *Service {
 }
 
 func (s Service) CreateScript(ctx context.Context, cid string, scr Config) (Config, error) {
-	saved, err := s.r.FindScriptByLevel(ctx, string(scr.Level), scr.EventTypeID, scr.OrgID, &scr.ProgramID)
+	saved, err := s.r.FindScriptByLevel(ctx, string(scr.Level), scr.ProcessCode, scr.OrgID, &scr.ProgramID)
 	if err == nil {
 		return Config{}, fmt.Errorf("script was created with id: %v", saved.ConfigID)
 	}
@@ -55,7 +55,6 @@ func (s Service) UpdateScript(ctx context.Context, cid string, scriptID string, 
 	}
 
 	saved.Description = scr.Description
-	saved.Company = scr.Company
 	saved.Scripts = scr.Scripts
 	saved.UpdatedAt = time.Now().UTC()
 	saved.Version++
