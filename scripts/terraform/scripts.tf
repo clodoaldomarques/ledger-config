@@ -1,12 +1,12 @@
-resource "aws_dynamodb_table_item" "pismo-101" {
-  table_name = aws_dynamodb_table.ScriptsTable.name
-  hash_key   = aws_dynamodb_table.ScriptsTable.hash_key
-  range_key  = aws_dynamodb_table.ScriptsTable.range_key
+resource "aws_dynamodb_table_item" "ledger-101" {
+  table_name = aws_dynamodb_table.ConfigTable.name
+  hash_key   = aws_dynamodb_table.ConfigTable.hash_key
+  range_key  = aws_dynamodb_table.ConfigTable.range_key
 
   item = jsonencode({
-    "script_id"   = { "S" =  "pismo-101" },
-    "filters"     = { "S" = "TENANT#PISMO#PROGRAMID#0000#EVENTTYPEID#101" },
-    "org_id"      = { "S" = "PISMO" },
+    "config_id"   = { "S" =  "ledger-101" },
+    "filters"     = { "S" = "TENANT#LEDGER#PROGRAMID#0000#EVENTTYPEID#101" },
+    "org_id"      = { "S" = "LEDGER" },
     "description_id" = { "S" = "Parcelamento xpto" },
     "level"       = { "S" = "platform" },
     "enable"      = { "BOOL" = true },

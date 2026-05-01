@@ -5,11 +5,11 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/clodoaldomarques/ledger-config/internal/domain/accounting"
+	"github.com/clodoaldomarques/ledger-config/internal/infra/db/dynamodb"
+	"github.com/clodoaldomarques/ledger-config/internal/infra/rest/shared"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"gitlab.com/clodoaldomarques/accounting-scripts/internal/domain/accounting"
-	"gitlab.com/clodoaldomarques/accounting-scripts/internal/infra/db/dynamodb"
-	"gitlab.com/clodoaldomarques/accounting-scripts/internal/infra/rest/shared"
 )
 
 func CreateScript(c echo.Context) error {

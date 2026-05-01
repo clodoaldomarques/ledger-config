@@ -3,12 +3,12 @@ variable "account-id" {
   default = "000000000000"
 }
 
-resource "aws_sns_topic" "script-sns-topic" {
+resource "aws_sns_topic" "config-sns-topic" {
   name = "script-sns-topic"
 }
 
 resource "aws_sns_topic_policy" "default" {
-  arn = aws_sns_topic.script-sns-topic.arn
+  arn = aws_sns_topic.config-sns-topic.arn
 
   policy = data.aws_iam_policy_document.sns_topic_policy.json
 }
@@ -46,7 +46,7 @@ data "aws_iam_policy_document" "sns_topic_policy" {
     }
 
     resources = [
-      aws_sns_topic.script-sns-topic.arn,
+      aws_sns_topic.config-sns-topic.arn,
     ]
 
     sid = "__default_statement_ID"
@@ -54,9 +54,9 @@ data "aws_iam_policy_document" "sns_topic_policy" {
 }
 
 output "aws_sns_topic_arn" {
-  value = aws_sns_topic.script-sns-topic.arn
+  value = aws_sns_topic.config-sns-topic.arn
 }
 
 output "aws_sns_topic_name" {
-  value = aws_sns_topic.script-sns-topic.name
+  value = aws_sns_topic.config-sns-topic.name
 }

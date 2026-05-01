@@ -1,4 +1,4 @@
-api = accounting-scripts-api
+api = ledger-config
 repository = clodoaldomarques
 
 run:

@@ -8,14 +8,14 @@ RUN go mod download
 
 COPY . .
 COPY cmd/main.go .
-RUN go build -o /ledger-configs
+RUN go build -o /ledger-config
 
 ## deploy
 FROM ubuntu AS base
 
 WORKDIR /
 
-COPY --from=build /ledger-configs /ledger-configs
+COPY --from=build /ledger-config /ledger-config
 
 #AWS 
 ENV AWS_ADDRESS="http://192.168.49.2:4566"
@@ -23,4 +23,4 @@ ENV AWS_REGION="us-east-1"
 
 EXPOSE 5000
 
-ENTRYPOINT [ "/ledger-configs" ]
+ENTRYPOINT [ "/ledger-config" ]

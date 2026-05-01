@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"gitlab.com/clodoaldomarques/accounting-scripts/internal/domain/accounting"
+	"github.com/clodoaldomarques/ledger-config/internal/domain/accounting"
 )
 
 type Script struct {

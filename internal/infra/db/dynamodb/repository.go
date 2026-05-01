@@ -9,7 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"gitlab.com/clodoaldomarques/accounting-scripts/internal/domain/accounting"
+	"github.com/clodoaldomarques/ledger-config/internal/domain/accounting"
 )
 
 type Repository struct {
@@ -21,7 +21,7 @@ func NewRepository() *Repository {
 	client := dynamodb.NewFromConfig(configure())
 	return &Repository{
 		client:    client,
-		tableName: "ScriptsTable",
+		tableName: "ConfigTable",
 	}
 }
 
@@ -30,7 +30,7 @@ func (r Repository) SaveScript(ctx context.Context, s accounting.Script) error {
 
 	item, err := attributevalue.MarshalMap(st)
 	if err != nil {
-		return fmt.Errorf("failed to marshal script: %w", err)
+		return fmt.Errorf("failed to marshal config: %w", err)
 	}
 
 	input := &dynamodb.PutItemInput{
@@ -55,7 +55,7 @@ func (r Repository) UpdateScript(ctx context.Context, s accounting.Script) error
 	}
 
 	delete(itemMap, "org_id")
-	delete(itemMap, "script_id")
+	delete(itemMap, "config_id")
 	delete(itemMap, "filters")
 	delete(itemMap, "updated_at")
 
@@ -119,7 +119,7 @@ func (r Repository) FindScriptByID(ctx context.Context, orgID string, scriptID s
 
 	var script Script
 	if err := attributevalue.UnmarshalMap(result.Item, &script); err != nil {
-		return accounting.Script{}, fmt.Errorf("failed to unmarshal script: %w", err)
+		return accounting.Script{}, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 
 	return script.toEntity(), nil
@@ -150,7 +150,7 @@ func (r Repository) FindScriptByLevel(ctx context.Context, level string, eventTy
 
 	var script Script
 	if err := attributevalue.UnmarshalMap(result.Items[0], &script); err != nil {
-		return accounting.Script{}, fmt.Errorf("failed to unmarshal script: %w", err)
+		return accounting.Script{}, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 
 	return script.toEntity(), nil

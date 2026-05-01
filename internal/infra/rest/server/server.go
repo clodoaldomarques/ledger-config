@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/clodoaldomarques/ledger-config/internal/infra/rest/accounting"
+	"github.com/clodoaldomarques/ledger-config/internal/infra/rest/shared"
+	"github.com/clodoaldomarques/ledger-config/pkg/logger"
 	"github.com/go-playground/validator"
 	"github.com/labstack/echo/v4"
-	"gitlab.com/clodoaldomarques/accounting-scripts/internal/infra/rest/accounting"
-	"gitlab.com/clodoaldomarques/accounting-scripts/internal/infra/rest/shared"
-	"gitlab.com/clodoaldomarques/accounting-scripts/pkg/logger"
 )
 
 type Server struct {

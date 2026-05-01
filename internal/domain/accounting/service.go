@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/clodoaldomarques/ledger-config/pkg/logger"
 	"github.com/google/uuid"
-	"gitlab.com/clodoaldomarques/accounting-scripts/pkg/logger"
 )
 
 type Service struct {
@@ -136,7 +136,7 @@ func (s Service) FindScriptByLevel(ctx context.Context, cid string, eventTypeID 
 		return saved, nil
 	}
 
-	if saved, err := s.r.FindScriptByLevel(ctx, string(PlatformLevel), eventTypeID, "PISMO", &programID); err == nil && saved.Enable {
+	if saved, err := s.r.FindScriptByLevel(ctx, string(PlatformLevel), eventTypeID, "LEDGER", &programID); err == nil && saved.Enable {
 		logger.Info(ctx, "accounting script found",
 			logger.Fields{
 				"level":  string(ProgramLevel),

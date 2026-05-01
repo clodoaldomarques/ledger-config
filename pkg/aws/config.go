@@ -6,7 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
-	"gitlab.com/clodoaldomarques/accounting-scripts/configs"
+	"github.com/clodoaldomarques/ledger-config/configs"
 )
 
 func NewCustomCredentials(c *configs.Config) aws.CredentialsProvider {

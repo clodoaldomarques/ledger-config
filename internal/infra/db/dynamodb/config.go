@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	caws "gitlab.com/clodoaldomarques/accounting-scripts/pkg/aws"
+	caws "github.com/clodoaldomarques/ledger-config/pkg/aws"
 )
 
 func configure() aws.Config {

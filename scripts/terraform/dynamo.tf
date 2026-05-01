@@ -1,10 +1,10 @@
-resource "aws_dynamodb_table" "ScriptsTable" {
-  name           = "ScriptsTable"
+resource "aws_dynamodb_table" "ConfigTable" {
+  name           = "ConfigTable"
   billing_mode   = "PROVISIONED"
   read_capacity  = 20
   write_capacity = 20
   hash_key       = "org_id"
-  range_key      = "script_id"
+  range_key      = "config_id"
 
   attribute {
     name = "org_id"
@@ -12,7 +12,7 @@ resource "aws_dynamodb_table" "ScriptsTable" {
   }
 
   attribute {
-    name = "script_id"
+    name = "config_id"
     type = "S"
   }
 
@@ -36,16 +36,16 @@ resource "aws_dynamodb_table" "ScriptsTable" {
   }
 
   tags = {
-    Name        = "ScriptsTable"
+    Name        = "ConfigTable"
     Environment = "Development"
-    Project     = "AccountingSystem"
+    Project     = "LedgerSystem"
   }
 }
 
 output "dynamodb_table_arn" {
-  value = aws_dynamodb_table.ScriptsTable.arn
+  value = aws_dynamodb_table.ConfigTable.arn
 }
 
 output "dynamodb_table_name" {
-  value = aws_dynamodb_table.ScriptsTable.name
+  value = aws_dynamodb_table.ConfigTable.name
 }

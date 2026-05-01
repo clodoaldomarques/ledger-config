@@ -1,26 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: accounting-scripts-app
+  name: ledger-config-app
   labels:
-    com.job.service: accounting-scripts-app
+    com.job.service: ledger-config-app
     tier: golang
 spec:
   selector: 
     matchLabels:
-      com.job.service: accounting-scripts-app
+      com.job.service: ledger-config-app
   strategy:
     type: Recreate
   template:
     metadata:
       labels: 
-        com.job.service: accounting-scripts-app
+        com.job.service: ledger-config-app
         tier: golang
     spec:
       serviceAccountName: default
       containers:
         - name: accounting-app
-          image: clodoaldomarques/accounting-scripts-api:latest
+          image: clodoaldomarques/ledger-config:latest
           imagePullPolicy: "Always"
           env:          
             - name: AWS_ADDRESS
@@ -44,9 +44,9 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: accounting-scripts-app-service
+  name: ledger-config-app-service
   labels:
-    com.job.service: accounting-scripts-app-service
+    com.job.service: ledger-config-app-service
 spec:
   type: LoadBalancer
   ports:
@@ -54,5 +54,5 @@ spec:
       targetPort: 5000
       nodePort: 31000
   selector:
-    com.job.service: accounting-scripts-app
+    com.job.service: ledger-config-app
     tier: golang
