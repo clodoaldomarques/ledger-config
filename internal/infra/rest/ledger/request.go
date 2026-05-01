@@ -11,7 +11,7 @@ import (
 
 type PostConfigRequest struct {
 	Level       string           `json:"level" validate:"required"`
-	EventTypeID string           `json:"event_type_id" validate:"required"`
+	ProcessCode string           `json:"process_code" validate:"required"`
 	ProgramID   *int64           `json:"program_id,omitempty"`
 	Description string           `json:"description" validate:"required"`
 	Accounts    []AccountRequest `json:"accounts,omitempty"`
@@ -29,7 +29,7 @@ func (p PostConfigRequest) Validate() error {
 	}
 
 	if len(p.Scripts) == 0 {
-		return fmt.Errorf("entries is required")
+		return fmt.Errorf("scripts is required")
 	}
 
 	for _, e := range p.Scripts {
@@ -43,7 +43,7 @@ func (p PostConfigRequest) Validate() error {
 func (p PostConfigRequest) PostToEntity(orgID string) ledger.Config {
 	scr := ledger.Config{
 		Level:       ledger.Level(p.Level),
-		ProcessCode: strings.ToUpper(p.EventTypeID),
+		ProcessCode: strings.ToUpper(p.ProcessCode),
 		OrgID:       orgID,
 		Description: p.Description,
 		Scripts:     make([]ledger.Script, 0, len(p.Scripts)),
@@ -77,7 +77,7 @@ func (p PathScriptRequest) Validate() error {
 	}
 
 	if len(p.Scripts) == 0 {
-		return fmt.Errorf("entries is required")
+		return fmt.Errorf("scripts is required")
 	}
 
 	for _, s := range p.Scripts {
@@ -165,7 +165,7 @@ func (e ScriptRequest) Validate() error {
 	}
 
 	if e.Expression == "" {
-		return errors.New("entry.expression is required")
+		return errors.New("scripts.expression is required")
 	}
 
 	if e.CreditAccount != nil {

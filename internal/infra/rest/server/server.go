@@ -35,7 +35,7 @@ func (s Server) routes() {
 	s.http.DELETE("/v1/ledger/config/:config_id/disable", ledger.DisableConfig)
 
 	s.http.GET("/v1/ledger/config/:event_type_id/:program_id", ledger.FindLedgerConfig)
-	s.http.GET("/v1/ledger/config", ledger.FindAllLedgerConfig)
+	s.http.GET("/v1/ledger/configs", ledger.FindAllLedgerConfig)
 }
 
 func (s Server) Start(port int) error {

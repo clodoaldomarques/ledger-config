@@ -6,7 +6,7 @@ type ErrDuplicatedScript struct {
 
 func (e ErrDuplicatedScript) Error() string {
 	if e.msg == "" {
-		return "duplicated entry"
+		return "duplicated script"
 	}
 	return e.msg
 }
@@ -26,5 +26,5 @@ type ErrScriptNotFound struct {
 }
 
 func (e ErrScriptNotFound) Error() string {
-	return "accounting script not found"
+	return "ledger config not found"
 }

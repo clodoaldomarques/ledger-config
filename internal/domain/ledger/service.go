@@ -44,8 +44,8 @@ func (s Service) CreateScript(ctx context.Context, cid string, scr Config) (Conf
 	return scr, nil
 }
 
-func (s Service) UpdateScript(ctx context.Context, cid string, scriptID string, scr Config) (Config, error) {
-	saved, err := s.r.FindScriptByID(ctx, scr.OrgID, scriptID)
+func (s Service) UpdateScript(ctx context.Context, cid string, configID string, scr Config) (Config, error) {
+	saved, err := s.r.FindScriptByID(ctx, scr.OrgID, configID)
 	if err != nil {
 		return Config{}, err
 	}
@@ -118,7 +118,7 @@ func (s Service) EnableScript(ctx context.Context, cid string, orgID string, scr
 
 func (s Service) FindScriptByLevel(ctx context.Context, cid string, eventTypeID string, orgID string, programID int64) (Config, error) {
 	if saved, err := s.r.FindScriptByLevel(ctx, string(ProgramLevel), eventTypeID, orgID, &programID); err == nil && saved.Enable {
-		logger.Info(ctx, "accounting script found",
+		logger.Info(ctx, "ledger config found",
 			logger.Fields{
 				"level":  string(ProgramLevel),
 				"script": saved,
@@ -127,7 +127,7 @@ func (s Service) FindScriptByLevel(ctx context.Context, cid string, eventTypeID 
 	}
 
 	if saved, err := s.r.FindScriptByLevel(ctx, string(TenantLevel), eventTypeID, orgID, &programID); err == nil && saved.Enable {
-		logger.Info(ctx, "accounting script found",
+		logger.Info(ctx, "ledger config found",
 			logger.Fields{
 				"level":  string(ProgramLevel),
 				"script": saved,
@@ -136,7 +136,7 @@ func (s Service) FindScriptByLevel(ctx context.Context, cid string, eventTypeID 
 	}
 
 	if saved, err := s.r.FindScriptByLevel(ctx, string(PlatformLevel), eventTypeID, "LEDGER", &programID); err == nil && saved.Enable {
-		logger.Info(ctx, "accounting script found",
+		logger.Info(ctx, "ledger config found",
 			logger.Fields{
 				"level":  string(ProgramLevel),
 				"script": saved,

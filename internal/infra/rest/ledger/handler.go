@@ -42,7 +42,7 @@ func CreateConfig(c echo.Context) error {
 
 func UpdateConfig(c echo.Context) error {
 	orgID, cid := getHeaders(c)
-	scriptID := c.Param("script_id")
+	configID := c.Param("config_id")
 	ctx := c.Request().Context()
 	r := dynamodb.NewRepository()
 	defer r.Close()
@@ -58,7 +58,7 @@ func UpdateConfig(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, shared.ErrResponse{Message: err.Error()})
 	}
 
-	saved, err := s.UpdateScript(ctx, cid, scriptID, psr.PatchToEntity(orgID))
+	saved, err := s.UpdateScript(ctx, cid, configID, psr.PatchToEntity(orgID))
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, shared.ErrResponse{Message: err.Error()})
 	}

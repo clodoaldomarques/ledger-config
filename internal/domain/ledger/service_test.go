@@ -152,7 +152,7 @@ func TestService_UpdateScript(t *testing.T) {
 			},
 			want: func(t *testing.T, scr Config, e error) {
 				assert.NotNil(t, e)
-				assert.Equal(t, "accounting script not found", e.Error())
+				assert.Equal(t, "ledger config not found", e.Error())
 			},
 		},
 		{
@@ -275,7 +275,7 @@ func TestService_FindScriptByLevel(t *testing.T) {
 			},
 			want: func(t *testing.T, sc Config, e error) {
 				assert.NotNil(t, e)
-				assert.Equal(t, "accounting script not found", e.Error())
+				assert.Equal(t, "ledger config not found", e.Error())
 			},
 		},
 	}
@@ -333,7 +333,7 @@ func TestService_FindAllScripts(t *testing.T) {
 			want: func(t *testing.T, scripts []Config, e error) {
 				assert.Nil(t, scripts)
 				assert.NotNil(t, e)
-				assert.Equal(t, "accounting script not found", e.Error())
+				assert.Equal(t, "ledger config not found", e.Error())
 			},
 		},
 	}

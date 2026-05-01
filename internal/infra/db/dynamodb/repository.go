@@ -84,7 +84,7 @@ func (r Repository) UpdateScript(ctx context.Context, s ledger.Config) error {
 		TableName: aws.String(r.tableName),
 		Key: map[string]types.AttributeValue{
 			"org_id":    &types.AttributeValueMemberS{Value: s.OrgID},
-			"script_id": &types.AttributeValueMemberS{Value: s.ConfigID},
+			"config_id": &types.AttributeValueMemberS{Value: s.ConfigID},
 		},
 		UpdateExpression:          aws.String(updateExpression),
 		ExpressionAttributeNames:  exprAttrNames,
@@ -99,12 +99,12 @@ func (r Repository) UpdateScript(ctx context.Context, s ledger.Config) error {
 	return nil
 }
 
-func (r Repository) FindScriptByID(ctx context.Context, orgID string, scriptID string) (ledger.Config, error) {
+func (r Repository) FindScriptByID(ctx context.Context, orgID string, configID string) (ledger.Config, error) {
 	input := &dynamodb.GetItemInput{
 		TableName: aws.String(r.tableName),
 		Key: map[string]types.AttributeValue{
 			"org_id":    &types.AttributeValueMemberS{Value: orgID},
-			"script_id": &types.AttributeValueMemberS{Value: scriptID},
+			"config_id": &types.AttributeValueMemberS{Value: configID},
 		},
 	}
 
