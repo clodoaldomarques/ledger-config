@@ -26,7 +26,7 @@ func NewRepository() *Repository {
 }
 
 func (r Repository) SaveScript(ctx context.Context, s ledger.Config) error {
-	st := buildScriptTable(s)
+	st := buildConfigTable(s)
 
 	item, err := attributevalue.MarshalMap(st)
 	if err != nil {
@@ -47,7 +47,7 @@ func (r Repository) SaveScript(ctx context.Context, s ledger.Config) error {
 }
 
 func (r Repository) UpdateScript(ctx context.Context, s ledger.Config) error {
-	st := buildScriptTable(s)
+	st := buildConfigTable(s)
 
 	itemMap, err := attributevalue.MarshalMap(st)
 	if err != nil {

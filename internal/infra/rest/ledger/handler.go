@@ -21,7 +21,7 @@ func CreateConfig(c echo.Context) error {
 
 	s := ledger.New(r)
 
-	psr := new(PostScriptRequest)
+	psr := new(PostConfigRequest)
 	if err := c.Bind(psr); err != nil {
 		return echo.ErrBadRequest
 	}
@@ -35,7 +35,7 @@ func CreateConfig(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, shared.ErrResponse{Message: err.Error()})
 	}
 
-	resp := buildScriptResponse(saved)
+	resp := buildConfigResponse(saved)
 
 	return c.JSON(http.StatusCreated, resp)
 }
@@ -63,7 +63,7 @@ func UpdateConfig(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, shared.ErrResponse{Message: err.Error()})
 	}
 
-	resp := buildScriptResponse(saved)
+	resp := buildConfigResponse(saved)
 
 	return c.JSON(http.StatusOK, resp)
 }
@@ -81,7 +81,7 @@ func DisableConfig(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, shared.ErrResponse{Message: err.Error()})
 	}
-	resp := buildScriptResponse(saved)
+	resp := buildConfigResponse(saved)
 
 	return c.JSON(http.StatusOK, resp)
 }
@@ -106,7 +106,7 @@ func FindLedgerConfig(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, shared.ErrResponse{Message: err.Error()})
 	}
 
-	sr := buildScriptResponse(scr)
+	sr := buildConfigResponse(scr)
 
 	return c.JSON(http.StatusOK, sr)
 }
@@ -127,9 +127,9 @@ func FindAllLedgerConfig(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, shared.ErrResponse{Message: err.Error()})
 	}
 
-	resp := make([]ScriptResponse, 0, len(scrs))
+	resp := make([]ConfigResponse, 0, len(scrs))
 	for _, s := range scrs {
-		sr := buildScriptResponse(s)
+		sr := buildConfigResponse(s)
 		resp = append(resp, sr)
 	}
 

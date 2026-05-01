@@ -6,24 +6,24 @@ import (
 	"github.com/clodoaldomarques/ledger-config/internal/domain/ledger"
 )
 
-type ScriptResponse struct {
-	ScriptID    string           `json:"script_id"`
+type ConfigResponse struct {
+	ConfigID    string           `json:"config_id"`
 	Level       string           `json:"level"`
 	EventTypeID string           `json:"event_type_id"`
 	OrgID       string           `json:"org_id"`
 	ProgramID   *int64           `json:"program_id,omitempty"`
 	Description string           `json:"description"`
 	Company     *CompanyResponse `json:"company,omitempty"`
-	Entries     []EntryResponse  `json:"entries"`
+	Entries     []ScriptResponse `json:"entries"`
 	Enable      bool             `json:"enable"`
 	CreatedAt   time.Time        `json:"created_at"`
 	UpdatedAt   time.Time        `json:"updated_at"`
 	Version     int64            `json:"version"`
 }
 
-func buildScriptResponse(s ledger.Config) ScriptResponse {
-	sr := ScriptResponse{
-		ScriptID:    s.ConfigID,
+func buildConfigResponse(s ledger.Config) ConfigResponse {
+	sr := ConfigResponse{
+		ConfigID:    s.ConfigID,
 		Level:       string(s.Level),
 		EventTypeID: s.EventTypeID,
 		OrgID:       s.OrgID,
@@ -42,8 +42,8 @@ func buildScriptResponse(s ledger.Config) ScriptResponse {
 		sr.Company = buildCompanyResponse(s.Company)
 	}
 
-	for _, e := range s.Entries {
-		er := buildEntryResponse(e)
+	for _, e := range s.Scripts {
+		er := buildScriptResponse(e)
 		sr.Entries = append(sr.Entries, er)
 	}
 
@@ -94,29 +94,22 @@ func buildCostCenterResponse(c *ledger.CostCenter) *CostCenterResponse {
 
 }
 
-type EntryResponse struct {
-	EntryTypeID   int64               `json:"entry_type_id"`
+type ScriptResponse struct {
+	ScriptID      int64               `json:"script_id"`
 	Flow          string              `json:"flow"`
 	Description   string              `json:"description"`
-	AmountName    string              `json:"amount_name,omitempty"`
 	Expression    string              `json:"expression,omitempty"`
-	CashInBucket  string              `json:"cashin_bucket,omitempty"`
-	CashOutBucket string              `json:"cashout_bucket,omitempty"`
 	CostCenter    *CostCenterResponse `json:"cost_center,omitempty"`
 	DebitAccount  *AccountResponse    `json:"debit_account,omitempty"`
 	CreditAccount *AccountResponse    `json:"credit_account,omitempty"`
-	Parameter     *ParameterResponse  `json:"parameter,omitempty"`
 }
 
-func buildEntryResponse(e ledger.Entry) EntryResponse {
-	er := EntryResponse{
-		EntryTypeID:   e.EntryTypeID,
-		Flow:          e.Flow,
-		Description:   e.Description,
-		AmountName:    e.AmountName,
-		Expression:    e.Expression,
-		CashInBucket:  e.CashInBucket,
-		CashOutBucket: e.CashOutBucket,
+func buildScriptResponse(e ledger.Script) ScriptResponse {
+	er := ScriptResponse{
+		ScriptID:    e.ScriptID,
+		Flow:        e.Flow,
+		Description: e.Description,
+		Expression:  e.Expression,
 	}
 
 	if e.CostCenter != nil {
@@ -131,21 +124,5 @@ func buildEntryResponse(e ledger.Entry) EntryResponse {
 		er.CreditAccount = buildAccountResponse(e.CreditAccount)
 	}
 
-	if e.Parameter != nil {
-		er.Parameter = buildParameterResponse(e.Parameter)
-	}
-
 	return er
-}
-
-type ParameterResponse struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
-}
-
-func buildParameterResponse(p *ledger.Parameter) *ParameterResponse {
-	return &ParameterResponse{
-		Name:  p.Name,
-		Value: p.Value,
-	}
 }

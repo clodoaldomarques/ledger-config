@@ -44,10 +44,10 @@ func TestService_CreateScript(t *testing.T) {
 			},
 			args: func() Config {
 				fs := fakeScript(ProgramLevel, "201", "PAGAMENTO A VISTA")
-				fs.Entries = append(fs.Entries, Entry{
-					EntryTypeID: 401,
+				fs.Scripts = append(fs.Scripts, Script{
+					ScriptID:    401,
 					Description: "IOF",
-					AmountName:  "amount",
+					Expression:  "amount",
 				})
 				return fs
 			},
@@ -127,10 +127,10 @@ func TestService_UpdateScript(t *testing.T) {
 			},
 			args: func() (string, Config) {
 				fs := fakeScript(PlatformLevel, "201", "PAGAMENTO A VISTA")
-				fs.Entries = append(fs.Entries, Entry{
-					EntryTypeID: 401,
+				fs.Scripts = append(fs.Scripts, Script{
+					ScriptID:    401,
 					Description: "IOF",
-					AmountName:  "amount",
+					Expression:  "amount",
 				})
 				return "uuid-12345", fs
 			},
@@ -370,16 +370,16 @@ func fakeScript(level Level, event string, description string) Config {
 			Code: "1234",
 			Type: "BR",
 		},
-		Entries: []Entry{
+		Scripts: []Script{
 			{
-				EntryTypeID: e,
+				ScriptID:    e,
 				Description: description,
-				AmountName:  "amount",
+				Expression:  "Amount.amount",
 			},
 			{
-				EntryTypeID: 401,
+				ScriptID:    401,
 				Description: "IOF",
-				AmountName:  "amount",
+				Expression:  "Amount.amount",
 			},
 		},
 		Enable:    true,

@@ -56,7 +56,7 @@ func (s Service) UpdateScript(ctx context.Context, cid string, scriptID string, 
 
 	saved.Description = scr.Description
 	saved.Company = scr.Company
-	saved.Entries = scr.Entries
+	saved.Scripts = scr.Scripts
 	saved.UpdatedAt = time.Now().UTC()
 	saved.Version++
 

@@ -14,7 +14,7 @@ var (
 	validAmounts = []string{"amount", "interest", "duo_date"}
 )
 
-type PostScriptRequest struct {
+type PostConfigRequest struct {
 	Level       string             `json:"level" validate:"required"`
 	EventTypeID string             `json:"event_type_id" validate:"required"`
 	ProgramID   *int64             `json:"program_id,omitempty"`
@@ -22,11 +22,11 @@ type PostScriptRequest struct {
 	Company     *CompanyRequest    `json:"company,omitempty"`
 	CostCenter  *CostCenterRequest `json:"cost_center,omitempty"`
 	Accounts    []AccountRequest   `json:"accounts,omitempty"`
-	Entries     []EntryRequest     `json:"entries" validate:"required"`
+	Scripts     []ScriptRequest    `json:"entries" validate:"required"`
 	Enable      *bool              `json:"enable,omitempty"`
 }
 
-func (p PostScriptRequest) Validate() error {
+func (p PostConfigRequest) Validate() error {
 	if p.Level == "" {
 		return fmt.Errorf("level is required")
 	}
@@ -35,11 +35,11 @@ func (p PostScriptRequest) Validate() error {
 		return fmt.Errorf("description is required")
 	}
 
-	if len(p.Entries) == 0 {
+	if len(p.Scripts) == 0 {
 		return fmt.Errorf("entries is required")
 	}
 
-	for _, e := range p.Entries {
+	for _, e := range p.Scripts {
 		if err := e.Validate(); err != nil {
 			return err
 		}
@@ -47,13 +47,13 @@ func (p PostScriptRequest) Validate() error {
 	return nil
 }
 
-func (p PostScriptRequest) PostToEntity(orgID string) ledger.Config {
+func (p PostConfigRequest) PostToEntity(orgID string) ledger.Config {
 	scr := ledger.Config{
 		Level:       ledger.Level(p.Level),
 		EventTypeID: strings.ToUpper(p.EventTypeID),
 		OrgID:       orgID,
 		Description: p.Description,
-		Entries:     make([]ledger.Entry, 0, len(p.Entries)),
+		Scripts:     make([]ledger.Script, 0, len(p.Scripts)),
 		CreatedAt:   time.Now().UTC(),
 		UpdatedAt:   time.Now().UTC(),
 		Enable:      true,
@@ -68,8 +68,8 @@ func (p PostScriptRequest) PostToEntity(orgID string) ledger.Config {
 		scr.Company = p.Company.ToEntity()
 	}
 
-	for _, e := range p.Entries {
-		scr.Entries = append(scr.Entries, e.ToEntity())
+	for _, e := range p.Scripts {
+		scr.Scripts = append(scr.Scripts, e.ToEntity())
 	}
 
 	return scr
@@ -78,7 +78,7 @@ func (p PostScriptRequest) PostToEntity(orgID string) ledger.Config {
 type PathScriptRequest struct {
 	Description string          `json:"description" validate:"required"`
 	Company     *CompanyRequest `json:"company,omitempty"`
-	Entries     []EntryRequest  `json:"entries" validate:"required"`
+	Entries     []ScriptRequest `json:"entries" validate:"required"`
 	Enable      *bool           `json:"enable,omitempty"`
 }
 
@@ -104,7 +104,7 @@ func (p PathScriptRequest) PatchToEntity(orgID string) ledger.Config {
 	scr := ledger.Config{
 		OrgID:       orgID,
 		Description: p.Description,
-		Entries:     make([]ledger.Entry, 0, len(p.Entries)),
+		Scripts:     make([]ledger.Script, 0, len(p.Entries)),
 	}
 
 	if p.Company != nil {
@@ -112,7 +112,7 @@ func (p PathScriptRequest) PatchToEntity(orgID string) ledger.Config {
 	}
 
 	for _, e := range p.Entries {
-		scr.Entries = append(scr.Entries, e.ToEntity())
+		scr.Scripts = append(scr.Scripts, e.ToEntity())
 	}
 
 	if p.Enable != nil {
@@ -190,29 +190,24 @@ func (c CostCenterRequest) ToEntity() *ledger.CostCenter {
 	}
 }
 
-type EntryRequest struct {
-	EntryTypeID   int64              `json:"entry_type_id" validate:"required"`
+type ScriptRequest struct {
+	ScriptID      int64              `json:"script_id" validate:"required"`
 	Flow          string             `json:"flow" validate:"required"`
 	Description   string             `json:"description" validate:"required"`
 	AmountName    string             `json:"amount_name,omitempty"`
 	Expression    string             `json:"expression,omitempty"`
-	CashInBucket  string             `json:"cashin_bucket,omitempty"`
-	CashOutBucket string             `json:"cashout_bucket,omitempty"`
 	CostCenter    *CostCenterRequest `json:"cost_center,omitempty"`
 	DebitAccount  *AccountRequest    `json:"debit_account,omitempty"`
 	CreditAccount *AccountRequest    `json:"credit_account,omitempty"`
 	Parameter     *ParameterRequest  `json:"parameter,omitempty"`
 }
 
-func (e EntryRequest) ToEntity() ledger.Entry {
-	entry := ledger.Entry{
-		EntryTypeID:   e.EntryTypeID,
-		Flow:          e.Flow,
-		Description:   e.Description,
-		AmountName:    e.AmountName,
-		Expression:    e.Expression,
-		CashInBucket:  e.CashInBucket,
-		CashOutBucket: e.CashOutBucket,
+func (e ScriptRequest) ToEntity() ledger.Script {
+	entry := ledger.Script{
+		ScriptID:    e.ScriptID,
+		Flow:        e.Flow,
+		Description: e.Description,
+		Expression:  e.Expression,
 	}
 
 	if e.CostCenter != nil {
@@ -227,14 +222,10 @@ func (e EntryRequest) ToEntity() ledger.Entry {
 		entry.CreditAccount = e.CreditAccount.ToEntity()
 	}
 
-	if e.Parameter != nil {
-		entry.Parameter = e.Parameter.ToEntity()
-	}
-
 	return entry
 }
 
-func (e EntryRequest) Validate() error {
+func (e ScriptRequest) Validate() error {
 	if e.Flow == "" {
 		return errors.New("entry.flow is required, choose an option: regular, migration")
 	}
@@ -280,11 +271,4 @@ func (p ParameterRequest) Validate() error {
 		return errors.New("entry.parameter.name and value are required")
 	}
 	return nil
-}
-
-func (p ParameterRequest) ToEntity() *ledger.Parameter {
-	return &ledger.Parameter{
-		Name:  p.Name,
-		Value: p.Value,
-	}
 }

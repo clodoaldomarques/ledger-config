@@ -16,7 +16,7 @@ type Config struct {
 	ProgramID   *int64    `dynamodbav:"program_id,omitempty"`
 	Description string    `dynamodbav:"description_id"`
 	Company     *Company  `dynamodbav:"company,omitempty"`
-	Entries     []Entry   `dynamodbav:"entries"`
+	Entries     []Script  `dynamodbav:"entries"`
 	Enable      bool      `dynamodbav:"enable"`
 	CreatedAt   time.Time `dynamodbav:"created_at"`
 	UpdatedAt   time.Time `dynamodbav:"updated_at"`
@@ -30,7 +30,7 @@ func (s Config) toEntity() ledger.Config {
 		EventTypeID: s.EventTypeID,
 		OrgID:       s.OrgID,
 		Description: s.Description,
-		Entries:     make([]ledger.Entry, 0),
+		Scripts:     make([]ledger.Script, 0),
 		Enable:      s.Enable,
 		CreatedAt:   s.CreatedAt,
 		UpdatedAt:   s.UpdatedAt,
@@ -46,13 +46,13 @@ func (s Config) toEntity() ledger.Config {
 	}
 
 	for _, e := range s.Entries {
-		scr.Entries = append(scr.Entries, e.toEntity())
+		scr.Scripts = append(scr.Scripts, e.toEntity())
 	}
 
 	return scr
 }
 
-func buildScriptTable(s ledger.Config) Config {
+func buildConfigTable(s ledger.Config) Config {
 	st := Config{
 		OrgID:       s.OrgID,
 		ConfigID:    s.ConfigID,
@@ -60,7 +60,7 @@ func buildScriptTable(s ledger.Config) Config {
 		Level:       string(s.Level),
 		EventTypeID: s.EventTypeID,
 		Description: s.Description,
-		Entries:     make([]Entry, 0),
+		Entries:     make([]Script, 0),
 		Enable:      s.Enable,
 		CreatedAt:   s.CreatedAt,
 		UpdatedAt:   s.UpdatedAt,
@@ -75,8 +75,8 @@ func buildScriptTable(s ledger.Config) Config {
 		st.Company = buildCompanyTable(s.Company)
 	}
 
-	for _, e := range s.Entries {
-		et := buildEntryTable(e)
+	for _, e := range s.Scripts {
+		et := buildScriptTable(e)
 		st.Entries = append(st.Entries, et)
 	}
 
@@ -176,29 +176,23 @@ func (a Account) toEntity() *ledger.Account {
 	}
 }
 
-type Entry struct {
-	EntryTypeID   int64       `dynamodbav:"entry_type_id"`
+type Script struct {
+	ScriptID      int64       `dynamodbav:"script_id"`
 	Flow          string      `dynamodbav:"flow"`
 	Description   string      `dynamodbav:"description"`
 	AmountName    string      `dynamodbav:"amount_name"`
 	Expression    string      `dynamodbav:"expression"`
-	CashInBucket  string      `dynamodbav:"cashin_bucket"`
-	CashOutBucket string      `dynamodbav:"cashout_bucket"`
 	CostCenter    *CostCenter `dynamodbav:"cost_center,omitempty"`
 	DebitAccount  *Account    `dynamodbav:"debit_account,omitempty"`
 	CreditAccount *Account    `dynamodbav:"credit_account,omitempty"`
-	Parameter     *Parameter  `dynamodbav:"parameter,omitempty"`
 }
 
-func buildEntryTable(e ledger.Entry) Entry {
-	et := Entry{
-		EntryTypeID:   e.EntryTypeID,
-		Flow:          e.Flow,
-		Description:   e.Description,
-		AmountName:    e.AmountName,
-		Expression:    e.Expression,
-		CashInBucket:  e.CashInBucket,
-		CashOutBucket: e.CashOutBucket,
+func buildScriptTable(e ledger.Script) Script {
+	et := Script{
+		ScriptID:    e.ScriptID,
+		Flow:        e.Flow,
+		Description: e.Description,
+		Expression:  e.Expression,
 	}
 
 	if e.CostCenter != nil {
@@ -213,22 +207,15 @@ func buildEntryTable(e ledger.Entry) Entry {
 		et.CreditAccount = buildAccountTable(e.CreditAccount)
 	}
 
-	if e.Parameter != nil {
-		et.Parameter = buildParameterTable(e.Parameter)
-	}
-
 	return et
 }
 
-func (e Entry) toEntity() ledger.Entry {
-	et := ledger.Entry{
-		EntryTypeID:   e.EntryTypeID,
-		Flow:          e.Flow,
-		Description:   e.Description,
-		AmountName:    e.AmountName,
-		Expression:    e.Expression,
-		CashInBucket:  e.CashInBucket,
-		CashOutBucket: e.CashOutBucket,
+func (e Script) toEntity() ledger.Script {
+	et := ledger.Script{
+		ScriptID:    e.ScriptID,
+		Flow:        e.Flow,
+		Description: e.Description,
+		Expression:  e.Expression,
 	}
 
 	if e.CostCenter != nil {
@@ -243,28 +230,5 @@ func (e Entry) toEntity() ledger.Entry {
 		et.DebitAccount = e.DebitAccount.toEntity()
 	}
 
-	if e.Parameter != nil {
-		et.Parameter = e.Parameter.toEntity()
-	}
-
 	return et
-}
-
-type Parameter struct {
-	Name  string `dynamodbav:"name"`
-	Value string `dynamodbav:"value"`
-}
-
-func buildParameterTable(p *ledger.Parameter) *Parameter {
-	return &Parameter{
-		Name:  p.Name,
-		Value: p.Value,
-	}
-}
-
-func (p Parameter) toEntity() *ledger.Parameter {
-	return &ledger.Parameter{
-		Name:  p.Name,
-		Value: p.Value,
-	}
 }
