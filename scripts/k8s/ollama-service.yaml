@@ -51,11 +51,11 @@ spec:
               # 2. Copia o Modelfile do ConfigMap
               cp /config/Modelfile /tmp/Modelfile
               
-              # 3. Cria o modelo customizado (validador-payload)
-              echo "Criando modelo customizado: validador-payload"
-              ollama create validador-payload -f /tmp/Modelfile
+              # 3. Cria o modelo customizado (Griphook)
+              echo "Criando modelo customizado: Griphook"
+              ollama create griphook -f /tmp/Modelfile
               
-              echo "Modelo validador-payload criado com sucesso!"
+              echo "Modelo Griphook criado com sucesso!"
               echo "Modelos disponíveis:"
               ollama list
           volumeMounts:
