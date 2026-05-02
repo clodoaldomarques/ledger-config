@@ -9,6 +9,13 @@ import (
 	"github.com/clodoaldomarques/ledger-config/internal/domain/ledger"
 )
 
+var (
+	levels = map[string]any{
+		string(ledger.TenantLevel):  ledger.TenantLevel,
+		string(ledger.ProgramLevel): ledger.ProgramLevel,
+	}
+)
+
 type PostConfigRequest struct {
 	Level       string           `json:"level" validate:"required"`
 	ProcessCode string           `json:"process_code" validate:"required"`
@@ -22,6 +29,10 @@ type PostConfigRequest struct {
 func (p PostConfigRequest) Validate() error {
 	if p.Level == "" {
 		return fmt.Errorf("level is required")
+	}
+
+	if _, has := levels[p.Level]; !has {
+		return fmt.Errorf("invalid level")
 	}
 
 	if p.Description == "" {
@@ -176,5 +187,16 @@ func (e ScriptRequest) Validate() error {
 		return e.DebitAccount.Validate()
 	}
 
+	return nil
+}
+
+type PostOrgActivate struct {
+	OrgID string `json:"org_id" validate:"required"`
+}
+
+func (p PostOrgActivate) Validate() error {
+	if p.OrgID == "" {
+		return errors.New("OrgID is required")
+	}
 	return nil
 }

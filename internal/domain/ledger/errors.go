@@ -1,5 +1,7 @@
 package ledger
 
+import "fmt"
+
 type ErrDuplicatedScript struct {
 	msg string
 }
@@ -22,9 +24,17 @@ func (e ErrDuplicatedAccount) Error() string {
 	return e.msg
 }
 
-type ErrScriptNotFound struct {
+type ErrConfigNotFound struct {
 }
 
-func (e ErrScriptNotFound) Error() string {
+func (e ErrConfigNotFound) Error() string {
 	return "ledger config not found"
+}
+
+type ErrOrgActivated struct {
+	OrgID string
+}
+
+func (e ErrOrgActivated) Error() string {
+	return fmt.Sprintf("tenant %s was activated", e.OrgID)
 }

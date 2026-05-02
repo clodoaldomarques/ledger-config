@@ -13,10 +13,6 @@ const (
 	ProgramLevel  Level = "program"
 )
 
-const (
-	PlatformTenant = "LEDGER"
-)
-
 type Config struct {
 	ConfigID    string
 	Level       Level
@@ -45,11 +41,9 @@ func (c Config) Validate() error {
 			return fmt.Errorf("org_id and program_id are required for level: %s", string(ProgramLevel))
 		}
 	case PlatformLevel:
-		if c.OrgID != PlatformTenant {
-			return fmt.Errorf("this tenant %s can not create %s level script", c.OrgID, c.Level)
-		}
+		return fmt.Errorf("this level only created by team")
 	default:
-		return fmt.Errorf("invalid script level %v, chose tenant or program", c.Level)
+		return fmt.Errorf("invalid config level %v, chose tenant or program", c.Level)
 	}
 
 	if err := validateScript(c.Scripts); err != nil {

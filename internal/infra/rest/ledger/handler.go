@@ -86,6 +86,38 @@ func DisableConfig(c echo.Context) error {
 	return c.JSON(http.StatusOK, resp)
 }
 
+func ActivateOrgID(c echo.Context) error {
+	ctx := c.Request().Context()
+	cid := c.Request().Header.Get("x-cid")
+
+	r := dynamodb.NewRepository()
+	defer r.Close()
+
+	s := ledger.New(r)
+
+	poa := new(PostOrgActivate)
+	if err := c.Bind(poa); err != nil {
+		return echo.ErrBadRequest
+	}
+
+	if err := poa.Validate(); err != nil {
+		return c.JSON(http.StatusBadRequest, shared.ErrResponse{Message: err.Error()})
+	}
+
+	saved, err := s.ActivateOrgID(ctx, cid, poa.OrgID)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, shared.ErrResponse{Message: err.Error()})
+	}
+
+	resp := make([]ConfigResponse, 0, len(saved))
+	for _, s := range saved {
+		sr := buildConfigResponse(s)
+		resp = append(resp, sr)
+	}
+
+	return c.JSON(http.StatusOK, resp)
+}
+
 func FindLedgerConfig(c echo.Context) error {
 	ctx := c.Request().Context()
 	orgID, cid := getHeaders(c)

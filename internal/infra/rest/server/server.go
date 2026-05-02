@@ -36,6 +36,9 @@ func (s Server) routes() {
 
 	s.http.GET("/v1/ledger/config/:event_type_id/:program_id", ledger.FindLedgerConfig)
 	s.http.GET("/v1/ledger/configs", ledger.FindAllLedgerConfig)
+
+	s.http.POST("/v1/ledger/org/activate", ledger.ActivateOrgID)
+
 }
 
 func (s Server) Start(port int) error {

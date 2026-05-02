@@ -21,7 +21,6 @@ kube-create:
 	kubectl apply -f scripts/k8s/localstack-service.yaml
 	kubectl apply -f scripts/k8s/dynamodb-admin-service.yaml
 	kubectl apply -f scripts/k8s/ollama-service.yaml
-	
 	kubectl apply -f scripts/k8s/app-service.yaml
 
 kube-delete:

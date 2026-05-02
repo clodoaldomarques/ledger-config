@@ -25,7 +25,7 @@ func NewRepository() *Repository {
 	}
 }
 
-func (r Repository) SaveScript(ctx context.Context, s ledger.Config) error {
+func (r Repository) SaveConfig(ctx context.Context, s ledger.Config) error {
 	st := buildConfigTable(s)
 
 	item, err := attributevalue.MarshalMap(st)
@@ -46,7 +46,7 @@ func (r Repository) SaveScript(ctx context.Context, s ledger.Config) error {
 	return nil
 }
 
-func (r Repository) UpdateScript(ctx context.Context, s ledger.Config) error {
+func (r Repository) UpdateConfig(ctx context.Context, s ledger.Config) error {
 	st := buildConfigTable(s)
 
 	itemMap, err := attributevalue.MarshalMap(st)
@@ -99,7 +99,7 @@ func (r Repository) UpdateScript(ctx context.Context, s ledger.Config) error {
 	return nil
 }
 
-func (r Repository) FindScriptByID(ctx context.Context, orgID string, configID string) (ledger.Config, error) {
+func (r Repository) FindConfigByID(ctx context.Context, orgID string, configID string) (ledger.Config, error) {
 	input := &dynamodb.GetItemInput{
 		TableName: aws.String(r.tableName),
 		Key: map[string]types.AttributeValue{
@@ -114,7 +114,7 @@ func (r Repository) FindScriptByID(ctx context.Context, orgID string, configID s
 	}
 
 	if result.Item == nil {
-		return ledger.Config{}, ErrScriptNotFound{}
+		return ledger.Config{}, ErrConfigNotFound{}
 	}
 
 	var script Config
@@ -125,7 +125,7 @@ func (r Repository) FindScriptByID(ctx context.Context, orgID string, configID s
 	return script.toEntity(), nil
 }
 
-func (r Repository) FindScriptByLevel(ctx context.Context, level string, eventTypeID string, orgID string, programID *int64) (ledger.Config, error) {
+func (r Repository) FindConfigByLevel(ctx context.Context, level string, eventTypeID string, orgID string, programID *int64) (ledger.Config, error) {
 	filters := buildFilters(level, orgID, eventTypeID, *programID)
 	input := &dynamodb.QueryInput{
 		TableName:              aws.String(r.tableName),
@@ -145,7 +145,7 @@ func (r Repository) FindScriptByLevel(ctx context.Context, level string, eventTy
 	}
 
 	if len(result.Items) == 0 {
-		return ledger.Config{}, ErrScriptNotFound{}
+		return ledger.Config{}, ErrConfigNotFound{}
 	}
 
 	var script Config
@@ -156,7 +156,7 @@ func (r Repository) FindScriptByLevel(ctx context.Context, level string, eventTy
 	return script.toEntity(), nil
 }
 
-func (r Repository) FindAllScripts(ctx context.Context, orgID string, programID *int64) ([]ledger.Config, error) {
+func (r Repository) FindAllConfigs(ctx context.Context, orgID string, programID *int64) ([]ledger.Config, error) {
 	input := buildInputQuery(r.tableName, orgID)
 	if programID != nil {
 		input = buildInputQueryWithFilters(r.tableName, orgID, *programID)
@@ -168,7 +168,7 @@ func (r Repository) FindAllScripts(ctx context.Context, orgID string, programID 
 	}
 
 	if len(result.Items) == 0 {
-		return nil, ErrScriptNotFound{}
+		return nil, ErrConfigNotFound{}
 	}
 
 	scripts := make([]ledger.Config, 0, len(result.Items))

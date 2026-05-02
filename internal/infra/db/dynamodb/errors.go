@@ -1,8 +1,8 @@
 package dynamodb
 
-type ErrScriptNotFound struct {
+type ErrConfigNotFound struct {
 }
 
-func (e ErrScriptNotFound) Error() string {
-	return "script not found"
+func (e ErrConfigNotFound) Error() string {
+	return "config not found"
 }
