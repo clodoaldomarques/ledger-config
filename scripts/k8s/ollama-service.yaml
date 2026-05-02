@@ -1,0 +1,182 @@
+# ============================================
+# 1. PersistentVolumeClaim (armazenamento dos modelos)
+# ============================================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ollama-pv-claim
+  labels:
+    com.job.service: ollama-ia
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+# ============================================
+# 2. Job único: baixa o modelo base e cria o customizado
+# ============================================
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ollama-setup
+  labels:
+    com.job.service: ollama-ia
+spec:
+  ttlSecondsAfterFinished: 300
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: setup
+          image: ollama/ollama:latest
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              # Inicia o servidor Ollama em segundo plano
+              echo "Iniciando servidor Ollama..."
+              ollama serve &
+              
+              # Aguarda o servidor ficar disponível
+              until ollama list > /dev/null 2>&1; do
+                echo "Aguardando Ollama server..."
+                sleep 2
+              done
+              
+              # 1. Baixa o modelo base (se já existir, não baixa novamente)
+              echo "Baixando modelo base qwen2.5-coder:1.5b ..."
+              ollama pull qwen2.5-coder:1.5b
+              
+              # 2. Copia o Modelfile do ConfigMap
+              cp /config/Modelfile /tmp/Modelfile
+              
+              # 3. Cria o modelo customizado (validador-payload)
+              echo "Criando modelo customizado: validador-payload"
+              ollama create validador-payload -f /tmp/Modelfile
+              
+              echo "Modelo validador-payload criado com sucesso!"
+              echo "Modelos disponíveis:"
+              ollama list
+          volumeMounts:
+            - name: ollama-storage
+              mountPath: /root/.ollama
+            - name: modelfile-config
+              mountPath: /config
+      volumes:
+        - name: ollama-storage
+          persistentVolumeClaim:
+            claimName: ollama-pv-claim
+        - name: modelfile-config
+          configMap:
+            name: ollama-modelfile
+---
+# ============================================
+# 3. ConfigMap com o Modelfile para o modelo customizado
+# ============================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ollama-modelfile
+  labels:
+    com.job.service: ollama-ia
+data:
+  Modelfile: |
+    FROM qwen2.5-coder:1.5b
+    
+    PARAMETER temperature 0.1
+    PARAMETER top_p 0.9
+    
+    SYSTEM """
+    Você é um validador de regras de negócio para payloads JSON de e-commerce.
+    
+    Sempre siga as regras abaixo e responda APENAS em formato JSON, sem texto adicional.
+    
+    REGRAS:
+    1. O campo "total" deve ser um número maior que 0 e menor ou igual a 5000.
+    2. O campo "quantidade" deve ser um inteiro entre 1 e 10 (inclusive).
+    3. O campo "email" deve conter '@' e não pode ser de domínios temporários (ex: 'tempmail.com', 'throwaway.com').
+    
+    RESPOSTA ESPERADA (JSON):
+    {
+      "valido": true/false,
+      "motivo": "string vazia se válido, senão o motivo da violação"
+    }
+    """
+---
+# ============================================
+# 4. Deployment do Ollama (servindo os modelos)
+# ============================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama-deployment
+  labels:
+    com.job.service: ollama-ia
+    tier: ollama
+spec:
+  selector:
+    matchLabels:
+      com.job.service: ollama-ia
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        com.job.service: ollama-ia
+        tier: ollama
+    spec:
+      containers:
+        - name: ollama-ia
+          image: ollama/ollama:latest
+          imagePullPolicy: "IfNotPresent"
+          env:
+            - name: OLLAMA_HOST
+              value: "0.0.0.0"
+          ports:
+            - containerPort: 11434
+          volumeMounts:
+            - name: ollama-storage
+              mountPath: /root/.ollama
+          resources:
+            requests:
+              memory: "4Gi"
+              cpu: "1"
+            limits:
+              memory: "5Gi"
+              cpu: "2"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 11434
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 11434
+            initialDelaySeconds: 30
+            periodSeconds: 10
+      volumes:
+        - name: ollama-storage
+          persistentVolumeClaim:
+            claimName: ollama-pv-claim
+---
+# ============================================
+# 5. Service (NodePort com porta externa 30007)
+# ============================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama-service
+  labels:
+    com.job.service: ollama-service
+spec:
+  type: NodePort
+  ports:
+    - port: 11434
+      targetPort: 11434
+      nodePort: 30007
+  selector:
+    com.job.service: ollama-ia
+    tier: ollama
