@@ -12,6 +12,7 @@ type Config struct {
 	AwsRegion       string
 	AccessKeyID     string
 	SecretAccessKey string
+	GriphookIAUrl   string
 }
 
 type Option func(*Config)
@@ -29,6 +30,7 @@ func New(options ...Option) *Config {
 			AwsRegion:       GetString("AWS_REGION", "us-east-1"),
 			AccessKeyID:     GetString("AWS_ACCESS_KEY_ID", "test"),
 			SecretAccessKey: GetString("AWS_SECRET_ACCESS_KEY", "test"),
+			GriphookIAUrl:   GetString("IA_URL", "http://192.168.49.2:30007"),
 		}
 	})
 

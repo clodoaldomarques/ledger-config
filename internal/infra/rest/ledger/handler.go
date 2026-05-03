@@ -1,20 +1,26 @@
 package ledger
 
 import (
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/clodoaldomarques/ledger-config/internal/domain/ledger"
 	"github.com/clodoaldomarques/ledger-config/internal/infra/db/dynamodb"
+	"github.com/clodoaldomarques/ledger-config/internal/infra/gringotts"
 	"github.com/clodoaldomarques/ledger-config/internal/infra/rest/shared"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
 func CreateConfig(c echo.Context) error {
-	orgID, cid := getHeaders(c)
+	orgID, cid, val := getHeaders(c)
 	ctx := c.Request().Context()
+
+	if val {
+		return Griphook(c)
+	}
 
 	r := dynamodb.NewRepository()
 	defer r.Close()
@@ -41,9 +47,14 @@ func CreateConfig(c echo.Context) error {
 }
 
 func UpdateConfig(c echo.Context) error {
-	orgID, cid := getHeaders(c)
+	orgID, cid, val := getHeaders(c)
 	configID := c.Param("config_id")
 	ctx := c.Request().Context()
+
+	if val {
+		return Griphook(c)
+	}
+
 	r := dynamodb.NewRepository()
 	defer r.Close()
 
@@ -69,7 +80,7 @@ func UpdateConfig(c echo.Context) error {
 }
 
 func DisableConfig(c echo.Context) error {
-	orgID, cid := getHeaders(c)
+	orgID, cid, _ := getHeaders(c)
 	scriptID := c.Param("script_id")
 	ctx := c.Request().Context()
 	r := dynamodb.NewRepository()
@@ -120,7 +131,7 @@ func ActivateOrgID(c echo.Context) error {
 
 func FindLedgerConfig(c echo.Context) error {
 	ctx := c.Request().Context()
-	orgID, cid := getHeaders(c)
+	orgID, cid, _ := getHeaders(c)
 	evtID := strings.ToUpper(c.Param("event_type_id"))
 
 	prgID, err := strconv.ParseInt(c.Param("program_id"), 10, 64)
@@ -144,7 +155,7 @@ func FindLedgerConfig(c echo.Context) error {
 }
 
 func FindAllLedgerConfig(c echo.Context) error {
-	orgID, cid := getHeaders(c)
+	orgID, cid, _ := getHeaders(c)
 	ctx := c.Request().Context()
 
 	r := dynamodb.NewRepository()
@@ -168,14 +179,38 @@ func FindAllLedgerConfig(c echo.Context) error {
 	return c.JSON(http.StatusOK, resp)
 }
 
-func getHeaders(c echo.Context) (string, string) {
+func Griphook(c echo.Context) error {
+	ctx := c.Request().Context()
+	g := gringotts.New()
+
+	jsonData, err := io.ReadAll(c.Request().Body)
+	if err != nil {
+		return err
+	}
+
+	resp, err := g.ValidateJSONConfig(ctx, string(jsonData))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, shared.ErrResponse{Message: err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, resp)
+}
+
+func getHeaders(c echo.Context) (string, string, bool) {
 	orgID := c.Request().Header.Get("x-tenant")
 	cid := c.Request().Header.Get("x-cid")
+	uia := c.Request().Header.Get("x-validate-ia")
 
 	if cid == "" {
 		cid = uuid.NewString()
 	}
-	return orgID, cid
+
+	val, err := strconv.ParseBool(uia)
+	if err != nil {
+		val = false
+	}
+
+	return orgID, cid, val
 }
 
 func getProgramIDQueryParams(c echo.Context) *int64 {

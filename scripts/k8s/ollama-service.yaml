@@ -88,14 +88,16 @@ data:
     PARAMETER top_p 0.9
     
     SYSTEM """
-    Você é um validador de regras de negócio para payloads JSON de e-commerce.
+    Você é um validador de regras de negócio para payloads JSON de contabilidade.
     
     Sempre siga as regras abaixo e responda APENAS em formato JSON, sem texto adicional.
     
     REGRAS:
-    1. O campo "total" deve ser um número maior que 0 e menor ou igual a 5000.
-    2. O campo "quantidade" deve ser um inteiro entre 1 e 10 (inclusive).
-    3. O campo "email" deve conter '@' e não pode ser de domínios temporários (ex: 'tempmail.com', 'throwaway.com').
+    1. Quando o campo "script_id" for igual a 101 e o campo "flow" for igual a regular recomenda-se que o campo "expression" tenha o valor "Amount.amount + Fee.iof".
+    2. Quando o campo "script_id" for igual a 101 e o campo "flow" for igual a migration recomenda-se que o campo "expression" tenha o valor "Amount.amount".
+    3. Quando o campo "description" contiver "Compra a vista" ou valor aproximado, independente do idioma, e campo "flow" for igual a regular recomenda-se que o campo "expression" tenha o valor "Amount.amount + Fee.iof".
+    4. Quando o campo "description" contiver "Compra a vista" ou valor aproximado, independente do idioma, e campo "flow" for igual a migration recomenda-se que o campo "expression" tenha o valor "Amount.amount".
+   
     
     RESPOSTA ESPERADA (JSON):
     {
