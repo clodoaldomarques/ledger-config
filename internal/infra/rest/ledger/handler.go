@@ -15,10 +15,10 @@ import (
 )
 
 func CreateConfig(c echo.Context) error {
-	orgID, cid, val := getHeaders(c)
+	orgID, cid, via := getHeaders(c)
 	ctx := c.Request().Context()
 
-	if val {
+	if via {
 		return Griphook(c)
 	}
 
@@ -29,7 +29,7 @@ func CreateConfig(c echo.Context) error {
 
 	psr := new(PostConfigRequest)
 	if err := c.Bind(psr); err != nil {
-		return echo.ErrBadRequest
+		return c.JSON(http.StatusBadRequest, shared.ErrResponse{Message: err.Error()})
 	}
 
 	if err := psr.Validate(); err != nil {
@@ -47,11 +47,11 @@ func CreateConfig(c echo.Context) error {
 }
 
 func UpdateConfig(c echo.Context) error {
-	orgID, cid, val := getHeaders(c)
+	orgID, cid, via := getHeaders(c)
 	configID := c.Param("config_id")
 	ctx := c.Request().Context()
 
-	if val {
+	if via {
 		return Griphook(c)
 	}
 
