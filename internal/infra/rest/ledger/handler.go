@@ -199,13 +199,13 @@ func Griphook(c echo.Context) error {
 func getHeaders(c echo.Context) (string, string, bool) {
 	orgID := c.Request().Header.Get("x-tenant")
 	cid := c.Request().Header.Get("x-cid")
-	uia := c.Request().Header.Get("x-validate-ia")
+	via := c.Request().Header.Get("x-validate-ia")
 
 	if cid == "" {
 		cid = uuid.NewString()
 	}
 
-	val, err := strconv.ParseBool(uia)
+	val, err := strconv.ParseBool(via)
 	if err != nil {
 		val = false
 	}
