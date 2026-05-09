@@ -1,4 +1,6 @@
-# disk volume claim
+# ============================================
+# PersistentVolumeClaim para persistência dos dados
+# ============================================
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -11,9 +13,10 @@ spec:
   resources:
     requests:
       storage: 500Mi
-status: {}
 ---
-# deployment
+# ============================================
+# Deployment do LocalStack com persistência ativada
+# ============================================
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -37,21 +40,26 @@ spec:
         - name: localstack-main
           image: localstack/localstack:3.7.0
           imagePullPolicy: "IfNotPresent"
-          env:            
+          env:
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
-                 secretKeyRef:
-                   name: aws-secrets
-                   key: AWS_ACCESS_KEY_ID 
+                secretKeyRef:
+                  name: aws-secrets
+                  key: AWS_ACCESS_KEY_ID
             - name: AWS_SECRET_ACCESS_KEY
               valueFrom:
-                 secretKeyRef:
-                   name: aws-secrets
-                   key: AWS_SECRET_ACCESS_KEY 
+                secretKeyRef:
+                  name: aws-secrets
+                  key: AWS_SECRET_ACCESS_KEY
             - name: AWS_DEFAULT_REGION
-              value: 'us-east-1'                            
+              value: 'us-east-1'
             - name: SERVICES
               value: 'sqs,sns,dynamodb'
+            # PERSISTÊNCIA ATIVADA – dados salvos no PVC
+            - name: PERSISTENCE
+              value: "1"
+            - name: DATA_DIR
+              value: "/var/lib/localstack"
           ports:
             - containerPort: 4566
             - containerPort: 4567
@@ -95,12 +103,12 @@ spec:
           readinessProbe:
             httpGet:
               path: /
-              port: 4566              
+              port: 4566
             initialDelaySeconds: 30
             periodSeconds: 20
             timeoutSeconds: 10
           volumeMounts:
-            - name: localstack-storage 
+            - name: localstack-storage
               mountPath: /var/lib/localstack
       restartPolicy: Always
       volumes:
@@ -108,7 +116,9 @@ spec:
           persistentVolumeClaim:
             claimName: localstack-claim
 ---
-# service
+# ============================================
+# Service para expor o LocalStack (NodePort)
+# ============================================
 apiVersion: v1
 kind: Service
 metadata:
@@ -128,6 +138,3 @@ spec:
       nodePort: 30003
   selector:
     com.job.service: localstack-deployment
-status:
-  loadBalancer: {}
-
