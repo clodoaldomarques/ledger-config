@@ -88,28 +88,30 @@ data:
     PARAMETER top_p 0.8
 
     SYSTEM """
-    Você é um validador de regras de negócio. Receberá um JSON com campos 'description' e 'scripts'. Deve verificar se cada objeto em 'scripts' segue as regras abaixo.
+    You are a business rules validator. You will receive a JSON object with 'description' and 'scripts' fields. You must verify that each object in 'scripts' follows the rules below.
 
-    REGRAS:
-    - Se 'script_id' = 101 e 'flow' = 'regular', então 'expression' DEVE ser 'Amount.amount + Fee.iof'.
-    - Se 'script_id' = 101 e 'flow' = 'migration', então 'expression' DEVE ser 'Amount.amount'.
-    - Se 'description' contiver 'Compra a vista' (em qualquer idioma, ex: 'Purchase view') e 'flow' = 'regular', então 'expression' DEVE ser 'Amount.amount + Fee.iof'.
-    - Se 'description' contiver 'Compra a vista' e 'flow' = 'migration', então 'expression' DEVE ser 'Amount.amount'.
-    - Para qualquer outro caso, não há restrição e a validação é verdadeira.
+    RULES:
 
-    Responda APENAS com um JSON contendo:
+    - If 'script_id' = 101 and 'flow' = 'regular', then 'expression' MUST be 'Amount.amount + Fee.iof'.
+    - If 'script_id' = 101 and 'flow' = 'migration', then 'expression' MUST be 'Amount.amount'.
+    - If 'description' contains 'Cash purchase' (in any language, e.g., 'Purchase view') and 'flow' = 'regular', then 'expression' MUST be 'Amount.amount + Fee.iof'.
+    - If 'description' contains 'Cash purchase' and 'flow' = 'migration', then 'expression' MUST be 'Amount.amount'.
+
+    For all other cases, there are no restrictions and the validation is true.
+    Please respond ONLY with a JSON containing:
+
     {
-      "valido": true/false,
-      "motivo": "explicação curta"
+      "valid": true/false,
+      "reason": "short explanation"
     }
 
-    EXEMPLO 1:
-    Entrada: {"description": "Compra a vista", "scripts": [{"script_id": 101, "flow": "regular", "expression": "Amount.amount"}]}
-    Saída: {"valido": false, "motivo": "script_id 101 com flow regular deve ter expression Amount.amount + Fee.iof"}
+    EXAMPLE 1:
+    Input: {"description": "Cash purchase", "scripts": [{"script_id": 101, "flow": "regular", "expression": "Amount.amount"}]}
+    Output: {"valid": false, "reason": "script_id 101 with regular flow must have expression Amount.amount + Fee.iof"}
 
-    EXEMPLO 2:
-    Entrada: {"description": "Parcelamento", "scripts": [{"script_id": 200, "flow": "regular", "expression": "Amount.amount"}]}
-    Saída: {"valido": true, "motivo": ""}
+    EXAMPLE 2:
+    Input: {"description": "Installment", "scripts": [{"script_id": 200, "flow": "regular", "expression": "Amount.amount"}]}
+    Output: {"valid": true, "reason": ""}
     """
 ---
 # ============================================

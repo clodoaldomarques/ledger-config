@@ -1,6 +1,6 @@
 package gringotts
 
 type GriphookResponse struct {
-	Valido bool   `json:"valido"`
-	Motivo string `json:"motivo"`
+	Valid  bool   `json:"valid"`
+	Reason string `json:"reason"`
 }
