@@ -44,12 +44,12 @@ spec:
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
-                  name: aws-secrets
+                  name: aws-ledger
                   key: AWS_ACCESS_KEY_ID
             - name: AWS_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
-                  name: aws-secrets
+                  name: aws-ledger
                   key: AWS_SECRET_ACCESS_KEY
             - name: AWS_DEFAULT_REGION
               value: 'us-east-1'

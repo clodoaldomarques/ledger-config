@@ -15,7 +15,7 @@ push:
 publish: build push
 
 kube-secrets:
-	kubectl create secret generic aws-secrets --from-literal=AWS_ACCESS_KEY_ID='test' --from-literal=AWS_SECRET_ACCESS_KEY='test' --from-literal=AWS_SESSION_TOKEN='' --from-literal=aws-account='000000000000' --from-literal=aws-assume-role='' --from-literal=aws-region='us-east-1'
+	kubectl create secret generic aws-ledger --from-literal=AWS_ACCESS_KEY_ID='test' --from-literal=AWS_SECRET_ACCESS_KEY='test' --from-literal=AWS_SESSION_TOKEN='' --from-literal=aws-account='000000000000' --from-literal=aws-assume-role='' --from-literal=aws-region='us-east-1'
 
 kube-create:
 	kubectl apply -f scripts/k8s/localstack-service.yaml
