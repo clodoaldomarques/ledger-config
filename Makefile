@@ -14,20 +14,13 @@ push:
 
 publish: build push
 
-kube-secrets:
-	kubectl create secret generic aws-ledger --from-literal=AWS_ACCESS_KEY_ID='test' --from-literal=AWS_SECRET_ACCESS_KEY='test' --from-literal=AWS_SESSION_TOKEN='' --from-literal=aws-account='000000000000' --from-literal=aws-assume-role='' --from-literal=aws-region='us-east-1'
+kube-apply:
+	kubectl apply -f scripts/k8s/
 
-kube-create:
-	kubectl apply -f scripts/k8s/localstack-service.yaml
-	kubectl apply -f scripts/k8s/dynamodb-admin-service.yaml
-	kubectl apply -f scripts/k8s/ollama-service.yaml
-	kubectl apply -f scripts/k8s/app-service.yaml
+kube-destroy:
+	kubectl delete -f scripts/k8s/ --ignore-not-found
 
-kube-delete:
-	kubectl delete -f scripts/k8s/localstack-service.yaml
-	kubectl delete -f scripts/k8s/dynamodb-admin-service.yaml
-	kubectl delete -f scripts/k8s/ollama-service.yaml
-	kubectl delete -f scripts/k8s/app-service.yaml
+kube-restart: kube-destroy kube-apply
 
 terraform:
 	until nc -z 192.168.49.2 30002; do echo waiting for localstack; sleep 2; done;
