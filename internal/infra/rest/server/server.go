@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/clodoaldomarques/core-sdk/pkg/logger"
 	"github.com/clodoaldomarques/ledger-config/internal/infra/rest/ledger"
 	"github.com/clodoaldomarques/ledger-config/internal/infra/rest/shared"
-	"github.com/clodoaldomarques/ledger-config/pkg/logger"
 	"github.com/go-playground/validator"
 	"github.com/labstack/echo/v4"
 )
@@ -27,7 +27,7 @@ func (s Server) routes() {
 	s.http.Validator = &CustomValidator{validator: validator.New()}
 
 	// logger interceptor
-	s.http.Use(InterceptorWithConfig(InterceptorConfig{
+	s.http.Use(logger.InterceptorWithConfig(logger.InterceptorConfig{
 		MaxBodySize:     5 * 1024,
 		LogRequestBody:  true,
 		LogResponseBody: false, // ligue só para debug

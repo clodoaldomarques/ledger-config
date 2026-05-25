@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/clodoaldomarques/ledger-config/pkg/logger"
+	"github.com/clodoaldomarques/core-sdk/pkg/logger"
 	"github.com/google/uuid"
 )
 
