@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/clodoaldomarques/ledger-config/configs"
+	"github.com/clodoaldomarques/ledger-config/config"
 	"github.com/ollama/ollama/api"
 )
 
@@ -16,7 +16,7 @@ type Griphook struct {
 }
 
 func New() *Griphook {
-	url := configs.New().GriphookIAUrl
+	url := config.New().GriphookIAUrl
 	return &Griphook{
 		URL:   url,
 		Model: "griphook:latest", // ou "validador-payload"

@@ -1,4 +1,4 @@
-package configs
+package config
 
 import (
 	"os"
@@ -7,12 +7,12 @@ import (
 )
 
 type Config struct {
-	AppPort         int
-	AwsAddress      string
-	AwsRegion       string
-	AccessKeyID     string
-	SecretAccessKey string
-	GriphookIAUrl   string
+	AppPort            int
+	AwsAddress         string
+	AwsRegion          string
+	AwsAccessKeyID     string
+	AwsSecretAccessKey string
+	GriphookIAUrl      string
 }
 
 type Option func(*Config)
@@ -25,12 +25,12 @@ var (
 func New(options ...Option) *Config {
 	singleton.Do(func() {
 		instance = &Config{
-			AppPort:         GetInt("APP_PORT", 8080),
-			AwsAddress:      GetString("AWS_ADDRESS", "http://192.168.49.2:30002"),
-			AwsRegion:       GetString("AWS_REGION", "us-east-1"),
-			AccessKeyID:     GetString("AWS_ACCESS_KEY_ID", "test"),
-			SecretAccessKey: GetString("AWS_SECRET_ACCESS_KEY", "test"),
-			GriphookIAUrl:   GetString("IA_URL", "http://192.168.49.2:30007"),
+			AppPort:            GetInt("APP_PORT", 8080),
+			AwsAddress:         GetString("AWS_ADDRESS", "http://192.168.49.2:30002"),
+			AwsRegion:          GetString("AWS_REGION", "us-east-1"),
+			AwsAccessKeyID:     GetString("AWS_ACCESS_KEY_ID", "test"),
+			AwsSecretAccessKey: GetString("AWS_SECRET_ACCESS_KEY", "test"),
+			GriphookIAUrl:      GetString("IA_URL", "http://192.168.49.2:30007"),
 		}
 	})
 
@@ -56,6 +56,20 @@ func WithAwsRegion(AwsRegion string) Option {
 	return func(c *Config) {
 		c.AwsRegion = AwsRegion
 	}
+}
+
+func (c Config) Region() string {
+	return c.AwsRegion
+}
+
+func (c Config) Address() string {
+	return c.AwsAddress
+}
+func (c Config) AccessKeyID() string {
+	return c.AwsAccessKeyID
+}
+func (c Config) SecretAccessKey() string {
+	return c.AwsSecretAccessKey
 }
 
 func GetString(env string, def string) string {
