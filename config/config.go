@@ -26,11 +26,11 @@ func New(options ...Option) *Config {
 	singleton.Do(func() {
 		instance = &Config{
 			AppPort:            GetInt("APP_PORT", 8080),
-			AwsAddress:         GetString("AWS_ADDRESS", "http://192.168.49.2:30002"),
-			AwsRegion:          GetString("AWS_REGION", "us-east-1"),
-			AwsAccessKeyID:     GetString("AWS_ACCESS_KEY_ID", "test"),
-			AwsSecretAccessKey: GetString("AWS_SECRET_ACCESS_KEY", "test"),
-			GriphookIAUrl:      GetString("IA_URL", "http://192.168.49.2:30007"),
+			AwsAddress:         GetString("AWS_ADDRESS", ""),
+			AwsRegion:          GetString("AWS_REGION", ""),
+			AwsAccessKeyID:     GetString("AWS_ACCESS_KEY_ID", ""),
+			AwsSecretAccessKey: GetString("AWS_SECRET_ACCESS_KEY", ""),
+			GriphookIAUrl:      GetString("IA_URL", ""),
 		}
 	})
 

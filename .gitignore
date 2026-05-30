@@ -34,3 +34,10 @@ override.tf.json
 .terraformrc
 terraform.rc
 .terraform.lock.hcl
+
+# env file
+.env
+
+# vscode files
+.idea
+.vscode

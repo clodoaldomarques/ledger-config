@@ -36,7 +36,9 @@ spec:
                    name: aws-credentials
                    key: AWS_SECRET_ACCESS_KEY 
             - name: AWS_REGION
-              value: "us-east-1"                   
+              value: "us-east-1"
+            - name: IA_URL
+              value: "http://ollama-service:11434"                  
           ports:
             - name: scripts-app
               containerPort: 5000
