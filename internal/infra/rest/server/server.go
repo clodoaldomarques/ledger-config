@@ -56,6 +56,7 @@ func (s Server) routes() {
 }
 
 func (s Server) Start(port int) error {
+	opentelemetry.Start(context.Background())
 	return s.http.Start(fmt.Sprintf(":%d", port))
 }
 
