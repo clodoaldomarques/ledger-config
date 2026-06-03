@@ -1,10 +1,12 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
 	"github.com/clodoaldomarques/core-sdk/pkg/logger"
+	"github.com/clodoaldomarques/core-sdk/pkg/opentelemetry"
 	"github.com/clodoaldomarques/ledger-config/internal/infra/rest/ledger"
 	"github.com/clodoaldomarques/ledger-config/internal/infra/rest/shared"
 	"github.com/go-playground/validator"
@@ -16,6 +18,10 @@ type Server struct {
 }
 
 func New() *Server {
+
+	//start observability
+	opentelemetry.Start(context.Background())
+
 	s := Server{
 		http: echo.New(),
 	}

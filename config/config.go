@@ -1,9 +1,9 @@
 package config
 
 import (
-	"os"
-	"strconv"
 	"sync"
+
+	"github.com/clodoaldomarques/core-sdk/pkg/env"
 )
 
 type Config struct {
@@ -25,12 +25,12 @@ var (
 func New(options ...Option) *Config {
 	singleton.Do(func() {
 		instance = &Config{
-			AppPort:            GetInt("APP_PORT", 8080),
-			AwsAddress:         GetString("AWS_ADDRESS", ""),
-			AwsRegion:          GetString("AWS_REGION", ""),
-			AwsAccessKeyID:     GetString("AWS_ACCESS_KEY_ID", ""),
-			AwsSecretAccessKey: GetString("AWS_SECRET_ACCESS_KEY", ""),
-			GriphookIAUrl:      GetString("IA_URL", ""),
+			AppPort:            env.GetInt("APP_PORT", 8080),
+			AwsAddress:         env.GetString("AWS_ADDRESS", ""),
+			AwsRegion:          env.GetString("AWS_REGION", ""),
+			AwsAccessKeyID:     env.GetString("AWS_ACCESS_KEY_ID", ""),
+			AwsSecretAccessKey: env.GetString("AWS_SECRET_ACCESS_KEY", ""),
+			GriphookIAUrl:      env.GetString("IA_URL", ""),
 		}
 	})
 
@@ -70,19 +70,4 @@ func (c Config) AccessKeyID() string {
 }
 func (c Config) SecretAccessKey() string {
 	return c.AwsSecretAccessKey
-}
-
-func GetString(env string, def string) string {
-	if e := os.Getenv(env); e != "" {
-		return e
-	}
-	return def
-}
-
-func GetInt(env string, def int) int {
-	i, err := strconv.Atoi(os.Getenv(env))
-	if err != nil {
-		return def
-	}
-	return i
 }
