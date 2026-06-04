@@ -22,7 +22,7 @@ spec:
         - name: accounting-app
           image: clodoaldomarques/ledger-config:latest
           imagePullPolicy: "Always"
-          env:          
+          env:
             - name: AWS_ADDRESS
               value: "http://localstack-service:4566"
             - name: AWS_ACCESS_KEY_ID
@@ -38,7 +38,11 @@ spec:
             - name: AWS_REGION
               value: "us-east-1"
             - name: IA_URL
-              value: "http://ollama-service:11434"                  
+              value: "http://ollama-service:11434"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-collector-service:4318"
+            - name: OTEL_SERVICE_NAME
+              value: "ledger-config"  
           ports:
             - name: scripts-app
               containerPort: 5000
