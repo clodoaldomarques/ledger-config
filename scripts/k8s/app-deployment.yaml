@@ -42,7 +42,7 @@ spec:
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
               value: "http://otel-collector-service:4318"
             - name: OTEL_SERVICE_NAME
-              value: "ledger-config"  
+              value: "ledger-config"
           ports:
             - name: scripts-app
               containerPort: 5000

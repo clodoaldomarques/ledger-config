@@ -254,7 +254,6 @@ func (s Service) FindScriptByLevel(ctx context.Context, cid string, eventTypeID 
 			"program_id": programID,
 			"config":     saved,
 		})
-		span.SetError(err)
 		logger.Info(ctx, "ledger config found",
 			logger.Fields{
 				"level":  string(ProgramLevel),
@@ -269,7 +268,6 @@ func (s Service) FindScriptByLevel(ctx context.Context, cid string, eventTypeID 
 			"program_id": programID,
 			"config":     saved,
 		})
-		span.SetError(err)
 		logger.Info(ctx, "ledger config found",
 			logger.Fields{
 				"level":  string(ProgramLevel),
