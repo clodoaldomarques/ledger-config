@@ -40,7 +40,7 @@ spec:
             - name: IA_URL
               value: "http://ollama-service:11434"
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: "http://otel-collector-service:4318"
+              value: "otel-collector-service:4317"
             - name: OTEL_SERVICE_NAME
               value: "ledger-config"
           ports:
