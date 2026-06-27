@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/clodoaldomarques/core-sdk/pkg/logger"
-	"github.com/clodoaldomarques/core-sdk/pkg/opentelemetry"
 	"github.com/clodoaldomarques/ledger-config/internal/infra/rest/ledger"
 	"github.com/clodoaldomarques/ledger-config/internal/infra/rest/shared"
 	"github.com/go-playground/validator"
@@ -18,15 +17,11 @@ type Server struct {
 }
 
 func New() *Server {
-
-	//start observability
-	opentelemetry.Start(context.Background())
-
-	s := Server{
+	s := &Server{
 		http: echo.New(),
 	}
 	s.routes()
-	return &s
+	return s
 }
 
 func (s Server) routes() {
@@ -56,12 +51,14 @@ func (s Server) routes() {
 }
 
 func (s Server) Start(port int) error {
-	opentelemetry.Start(context.Background())
 	return s.http.Start(fmt.Sprintf(":%d", port))
 }
 
+func (s *Server) Shutdown(ctx context.Context) error {
+	return s.http.Shutdown(ctx)
+}
+
 func HealthCheck(c echo.Context) error {
-	logger.Info(c.Request().Context(), "health check", logger.Fields{})
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"data": "Server is up and running",
 	})

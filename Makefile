@@ -14,6 +14,9 @@ push:
 
 publish: build push
 
+version:
+	docker images | grep $(api)
+
 apply: 
 	kubectl apply -f scripts/k8s/
 	until nc -z 192.168.49.2 30002; do echo waiting for localstack; sleep 2; done;
