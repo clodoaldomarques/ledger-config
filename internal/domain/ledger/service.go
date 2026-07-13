@@ -13,23 +13,27 @@ import (
 
 type Service struct {
 	r Repository
+	t Topic
 }
 
-func New(r Repository) *Service {
-	return &Service{r: r}
+func New(r Repository, t Topic) *Service {
+	return &Service{
+		r: r,
+		t: t,
+	}
 }
 
 func (s Service) CreateScript(ctx context.Context, cid string, scr Config) (Config, error) {
 	span, ctx := tracer.NewSpanFromContext(ctx, "Service::CreateScript", attribute.String("cid", cid))
 	defer span.End()
-	saved, err := s.r.FindConfigByLevel(ctx, string(scr.Level), scr.ProcessCode, scr.OrgID, &scr.ProgramID)
+	saved, err := s.r.FindConfigByLevel(ctx, string(scr.Level), scr.ProcessingCode, scr.OrgID, &scr.ProgramID)
 	if err == nil {
 		span.AddAttributes(tracer.Attributes{
 			"org_id":     scr.OrgID,
 			"program_id": scr.ProgramID,
 			"config":     scr,
 		})
-		span.SetError(err)
+		span.SetError(fmt.Errorf("config was created with id: %v", saved.ConfigID))
 		return Config{}, fmt.Errorf("config was created with id: %v", saved.ConfigID)
 	}
 
@@ -62,6 +66,16 @@ func (s Service) CreateScript(ctx context.Context, cid string, scr Config) (Conf
 		logger.Error(ctx, "error on save script", logger.Fields{
 			"Error": err.Error(),
 		})
+		return Config{}, err
+	}
+
+	if err := s.t.Emit(ctx, cid, scr); err != nil {
+		span.AddAttributes(tracer.Attributes{
+			"org_id":     scr.OrgID,
+			"program_id": scr.ProgramID,
+			"config":     scr,
+		})
+		span.SetError(err)
 		return Config{}, err
 	}
 
@@ -103,6 +117,16 @@ func (s Service) UpdateScript(ctx context.Context, cid string, configID string, 
 	}
 
 	if err := s.r.UpdateConfig(ctx, saved); err != nil {
+		span.AddAttributes(tracer.Attributes{
+			"org_id":     scr.OrgID,
+			"program_id": scr.ProgramID,
+			"config":     scr,
+		})
+		span.SetError(err)
+		return Config{}, err
+	}
+
+	if err := s.t.Emit(ctx, cid, scr); err != nil {
 		span.AddAttributes(tracer.Attributes{
 			"org_id":     scr.OrgID,
 			"program_id": scr.ProgramID,
@@ -154,6 +178,16 @@ func (s Service) DisableScript(ctx context.Context, cid string, orgID string, sc
 		return Config{}, err
 	}
 
+	if err := s.t.Emit(ctx, cid, saved); err != nil {
+		span.AddAttributes(tracer.Attributes{
+			"org_id":     saved.OrgID,
+			"program_id": saved.ProgramID,
+			"config":     saved,
+		})
+		span.SetError(err)
+		return Config{}, err
+	}
+
 	return saved, nil
 }
 
@@ -192,6 +226,16 @@ func (s Service) EnableScript(ctx context.Context, cid string, orgID string, scr
 		return Config{}, err
 	}
 
+	if err := s.t.Emit(ctx, cid, saved); err != nil {
+		span.AddAttributes(tracer.Attributes{
+			"org_id":     saved.OrgID,
+			"program_id": saved.ProgramID,
+			"config":     saved,
+		})
+		span.SetError(err)
+		return Config{}, err
+	}
+
 	return saved, nil
 }
 
@@ -211,20 +255,20 @@ func (s Service) ActivateOrgID(ctx context.Context, cid string, orgID string) ([
 
 	for _, c := range configs {
 		n := Config{
-			ConfigID:    uuid.NewString(),
-			Level:       TenantLevel,
-			ProcessCode: c.ProcessCode,
-			OrgID:       orgID,
-			ProgramID:   c.ProgramID,
-			Description: c.Description,
-			Scripts:     c.Scripts,
-			Enable:      true,
-			CreatedAt:   time.Now(),
-			UpdatedAt:   time.Now(),
-			Version:     1,
+			ConfigID:       uuid.NewString(),
+			Level:          TenantLevel,
+			ProcessingCode: c.ProcessingCode,
+			OrgID:          orgID,
+			ProgramID:      c.ProgramID,
+			Description:    c.Description,
+			Scripts:        c.Scripts,
+			Enable:         true,
+			CreatedAt:      time.Now(),
+			UpdatedAt:      time.Now(),
+			Version:        1,
 		}
 
-		saved, _ := s.r.FindConfigByLevel(ctx, string(n.Level), n.ProcessCode, n.OrgID, &n.ProgramID)
+		saved, _ := s.r.FindConfigByLevel(ctx, string(n.Level), n.ProcessingCode, n.OrgID, &n.ProgramID)
 		if saved.ConfigID == "" {
 			err = s.r.SaveConfig(ctx, n)
 			if err != nil {
@@ -234,6 +278,17 @@ func (s Service) ActivateOrgID(ctx context.Context, cid string, orgID string) ([
 				span.SetError(err)
 				return nil, err
 			}
+
+			if err := s.t.Emit(ctx, cid, n); err != nil {
+				span.AddAttributes(tracer.Attributes{
+					"org_id":     n.OrgID,
+					"program_id": n.ProgramID,
+					"config":     n,
+				})
+				span.SetError(err)
+				return nil, err
+			}
+
 			newConfigs = append(newConfigs, n)
 		}
 	}

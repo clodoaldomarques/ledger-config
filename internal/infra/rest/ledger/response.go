@@ -7,30 +7,30 @@ import (
 )
 
 type ConfigResponse struct {
-	ConfigID    string           `json:"config_id"`
-	Level       string           `json:"level"`
-	ProcessCode string           `json:"process_code"`
-	OrgID       string           `json:"org_id"`
-	ProgramID   *int64           `json:"program_id,omitempty"`
-	Description string           `json:"description"`
-	Scripts     []ScriptResponse `json:"scripts"`
-	Enable      bool             `json:"enable"`
-	CreatedAt   time.Time        `json:"created_at"`
-	UpdatedAt   time.Time        `json:"updated_at"`
-	Version     int64            `json:"version"`
+	ConfigID       string           `json:"config_id"`
+	Level          string           `json:"level"`
+	ProcessingCode string           `json:"processing_code"`
+	OrgID          string           `json:"org_id"`
+	ProgramID      *int64           `json:"program_id,omitempty"`
+	Description    string           `json:"description"`
+	Scripts        []ScriptResponse `json:"scripts"`
+	Enable         bool             `json:"enable"`
+	CreatedAt      time.Time        `json:"created_at"`
+	UpdatedAt      time.Time        `json:"updated_at"`
+	Version        int64            `json:"version"`
 }
 
 func buildConfigResponse(s ledger.Config) ConfigResponse {
 	sr := ConfigResponse{
-		ConfigID:    s.ConfigID,
-		Level:       string(s.Level),
-		ProcessCode: s.ProcessCode,
-		OrgID:       s.OrgID,
-		Description: s.Description,
-		Enable:      s.Enable,
-		CreatedAt:   s.CreatedAt,
-		UpdatedAt:   s.UpdatedAt,
-		Version:     s.Version,
+		ConfigID:       s.ConfigID,
+		Level:          string(s.Level),
+		ProcessingCode: s.ProcessingCode,
+		OrgID:          s.OrgID,
+		Description:    s.Description,
+		Enable:         s.Enable,
+		CreatedAt:      s.CreatedAt,
+		UpdatedAt:      s.UpdatedAt,
+		Version:        s.Version,
 	}
 
 	if s.ProgramID > 0 {

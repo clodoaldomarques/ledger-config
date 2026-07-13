@@ -24,16 +24,16 @@ type Config struct {
 
 func (s Config) toEntity() ledger.Config {
 	scr := ledger.Config{
-		ConfigID:    s.ConfigID,
-		Level:       ledger.Level(s.Level),
-		ProcessCode: s.ProcessCode,
-		OrgID:       s.OrgID,
-		Description: s.Description,
-		Scripts:     make([]ledger.Script, 0),
-		Enable:      s.Enable,
-		CreatedAt:   s.CreatedAt,
-		UpdatedAt:   s.UpdatedAt,
-		Version:     s.Version,
+		ConfigID:       s.ConfigID,
+		Level:          ledger.Level(s.Level),
+		ProcessingCode: s.ProcessCode,
+		OrgID:          s.OrgID,
+		Description:    s.Description,
+		Scripts:        make([]ledger.Script, 0),
+		Enable:         s.Enable,
+		CreatedAt:      s.CreatedAt,
+		UpdatedAt:      s.UpdatedAt,
+		Version:        s.Version,
 	}
 
 	if s.ProgramID != nil {
@@ -51,9 +51,9 @@ func buildConfigTable(s ledger.Config) Config {
 	st := Config{
 		OrgID:       s.OrgID,
 		ConfigID:    s.ConfigID,
-		Filters:     buildFilters(string(s.Level), s.OrgID, s.ProcessCode, s.ProgramID),
+		Filters:     buildFilters(string(s.Level), s.OrgID, s.ProcessingCode, s.ProgramID),
 		Level:       string(s.Level),
-		ProcessCode: s.ProcessCode,
+		ProcessCode: s.ProcessingCode,
 		Description: s.Description,
 		Scripts:     make([]Script, 0),
 		Enable:      s.Enable,

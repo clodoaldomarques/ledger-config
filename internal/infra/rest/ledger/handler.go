@@ -9,6 +9,7 @@ import (
 	"github.com/clodoaldomarques/ledger-config/internal/domain/ledger"
 	"github.com/clodoaldomarques/ledger-config/internal/infra/db/dynamodb"
 	"github.com/clodoaldomarques/ledger-config/internal/infra/gringotts"
+	"github.com/clodoaldomarques/ledger-config/internal/infra/message"
 	"github.com/clodoaldomarques/ledger-config/internal/infra/rest/shared"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -25,7 +26,10 @@ func CreateConfig(c echo.Context) error {
 	r := dynamodb.NewRepository()
 	defer r.Close()
 
-	s := ledger.New(r)
+	t := message.New(ctx)
+	defer t.Close(ctx)
+
+	s := ledger.New(r, t)
 
 	psr := new(PostConfigRequest)
 	if err := c.Bind(psr); err != nil {
@@ -58,7 +62,10 @@ func UpdateConfig(c echo.Context) error {
 	r := dynamodb.NewRepository()
 	defer r.Close()
 
-	s := ledger.New(r)
+	t := message.New(ctx)
+	defer t.Close(ctx)
+
+	s := ledger.New(r, t)
 
 	psr := new(PathScriptRequest)
 	if err := c.Bind(psr); err != nil {
@@ -86,7 +93,10 @@ func DisableConfig(c echo.Context) error {
 	r := dynamodb.NewRepository()
 	defer r.Close()
 
-	s := ledger.New(r)
+	t := message.New(ctx)
+	defer t.Close(ctx)
+
+	s := ledger.New(r, t)
 
 	saved, err := s.DisableScript(ctx, cid, orgID, scriptID)
 	if err != nil {
@@ -104,7 +114,10 @@ func ActivateOrgID(c echo.Context) error {
 	r := dynamodb.NewRepository()
 	defer r.Close()
 
-	s := ledger.New(r)
+	t := message.New(ctx)
+	defer t.Close(ctx)
+
+	s := ledger.New(r, t)
 
 	poa := new(PostOrgActivate)
 	if err := c.Bind(poa); err != nil {
@@ -142,7 +155,10 @@ func FindLedgerConfig(c echo.Context) error {
 	r := dynamodb.NewRepository()
 	defer r.Close()
 
-	s := ledger.New(r)
+	t := message.New(ctx)
+	defer t.Close(ctx)
+
+	s := ledger.New(r, t)
 
 	scr, err := s.FindScriptByLevel(ctx, cid, evtID, orgID, prgID)
 	if err != nil {
@@ -161,7 +177,10 @@ func FindAllLedgerConfig(c echo.Context) error {
 	r := dynamodb.NewRepository()
 	defer r.Close()
 
-	s := ledger.New(r)
+	t := message.New(ctx)
+	defer t.Close(ctx)
+
+	s := ledger.New(r, t)
 
 	prgID := getProgramIDQueryParams(c)
 

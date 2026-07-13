@@ -37,6 +37,8 @@ spec:
                    key: AWS_SECRET_ACCESS_KEY 
             - name: AWS_REGION
               value: "us-east-1"
+            - name: CONFIG_SNS_TOPIC
+              value: arn:aws:sns:us-east-1:000000000000:config-sns-topic              
             - name: IA_URL
               value: "http://ollama-service:11434"
             - name: OTEL_EXPORTER_OTLP_ENDPOINT

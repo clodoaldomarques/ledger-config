@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"strconv"
 	"testing"
 	"time"
@@ -11,7 +12,16 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace/noop"
 )
+
+// 1. TestMain para configurar o tracer noop
+func TestMain(m *testing.M) {
+	otel.SetTracerProvider(noop.NewTracerProvider())
+	code := m.Run()
+	os.Exit(code)
+}
 
 func TestService_CreateScript(t *testing.T) {
 	tests := []struct {
@@ -26,7 +36,9 @@ func TestService_CreateScript(t *testing.T) {
 				r := NewMockRepository(ctrl)
 				r.EXPECT().FindConfigByLevel(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(Config{}, ErrConfigNotFound{}).Times(1)
 				r.EXPECT().SaveConfig(gomock.Any(), gomock.Any()).Return(nil).Times(1)
-				return New(r)
+				t := NewMockTopic(ctrl)
+				t.EXPECT().Emit(gomock.Any(), gomock.Any(), gomock.All()).Return(nil).Times(1)
+				return New(r, t)
 			},
 			args: func() Config {
 				return fakeScript(ProgramLevel, "201", "PAGAMENTO A VISTA")
@@ -40,14 +52,16 @@ func TestService_CreateScript(t *testing.T) {
 			setup: func(ctrl *gomock.Controller) *Service {
 				r := NewMockRepository(ctrl)
 				r.EXPECT().FindConfigByLevel(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(fakeScript(ProgramLevel, "201", "PAGAMENTO A VISTA"), nil).Times(1)
-				return New(r)
+				t := NewMockTopic(ctrl)
+				return New(r, t)
 			},
 			args: func() Config {
 				fs := fakeScript(ProgramLevel, "201", "PAGAMENTO A VISTA")
 				fs.Scripts = append(fs.Scripts, Script{
 					ScriptID:    401,
+					Flow:        Regular,
 					Description: "IOF",
-					Expression:  "amount",
+					Expression:  "Fees.iof",
 				})
 				return fs
 			},
@@ -62,7 +76,9 @@ func TestService_CreateScript(t *testing.T) {
 				r := NewMockRepository(ctrl)
 				r.EXPECT().FindConfigByLevel(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(Config{}, ErrConfigNotFound{}).Times(1)
 				r.EXPECT().SaveConfig(gomock.Any(), gomock.Any()).Return(errors.New("any repository error")).Times(1)
-				return New(r)
+
+				t := NewMockTopic(ctrl)
+				return New(r, t)
 			},
 			args: func() Config {
 				return fakeScript(ProgramLevel, "201", "PAGAMENTO A VISTA")
@@ -107,7 +123,10 @@ func TestService_UpdateScript(t *testing.T) {
 					}
 					return nil
 				})
-				return New(r)
+
+				t := NewMockTopic(ctrl)
+				t.EXPECT().Emit(gomock.Any(), gomock.Any(), gomock.All()).Return(nil).Times(1)
+				return New(r, t)
 			},
 			args: func() (string, Config) {
 				changed := fakeScript(PlatformLevel, "201", "Changed Description")
@@ -123,7 +142,8 @@ func TestService_UpdateScript(t *testing.T) {
 			setup: func(ctrl *gomock.Controller) *Service {
 				r := NewMockRepository(ctrl)
 				r.EXPECT().FindConfigByID(gomock.Any(), gomock.Any(), gomock.Any()).Return(fakeScript(ProgramLevel, "201", "PAGAMENTO A VISTA"), nil).Times(1)
-				return New(r)
+				t := NewMockTopic(ctrl)
+				return New(r, t)
 			},
 			args: func() (string, Config) {
 				fs := fakeScript(PlatformLevel, "201", "PAGAMENTO A VISTA")
@@ -145,7 +165,8 @@ func TestService_UpdateScript(t *testing.T) {
 			setup: func(ctrl *gomock.Controller) *Service {
 				r := NewMockRepository(ctrl)
 				r.EXPECT().FindConfigByID(gomock.Any(), gomock.Any(), gomock.Any()).Return(Config{}, ErrConfigNotFound{}).Times(1)
-				return New(r)
+				t := NewMockTopic(ctrl)
+				return New(r, t)
 			},
 			args: func() (string, Config) {
 				return "uuid-12345", fakeScript(PlatformLevel, "201", "Changed Description")
@@ -161,7 +182,8 @@ func TestService_UpdateScript(t *testing.T) {
 				r := NewMockRepository(ctrl)
 				r.EXPECT().FindConfigByID(gomock.Any(), gomock.Any(), gomock.Any()).Return(fakeScript(ProgramLevel, "201", "PAGAMENTO A VISTA"), nil).Times(1)
 				r.EXPECT().UpdateConfig(gomock.Any(), gomock.Any()).Return(errors.New("any repository error"))
-				return New(r)
+				t := NewMockTopic(ctrl)
+				return New(r, t)
 			},
 			args: func() (string, Config) {
 				return "uuid-12345", fakeScript(PlatformLevel, "201", "Changed Description")
@@ -202,7 +224,8 @@ func TestService_FindConfigByLevel(t *testing.T) {
 					}
 					return Config{}, ErrConfigNotFound{}
 				}).Times(1)
-				return New(r)
+				t := NewMockTopic(ctrl)
+				return New(r, t)
 			},
 			args: func() (string, string, int64) {
 				return "201", "TN-77add76c-e395-446b-b306-1a0f9cb99a31", 1
@@ -210,7 +233,7 @@ func TestService_FindConfigByLevel(t *testing.T) {
 			want: func(t *testing.T, sc Config, e error) {
 				assert.Nil(t, e)
 				assert.Equal(t, ProgramLevel, sc.Level)
-				assert.Equal(t, "201", sc.ProcessCode)
+				assert.Equal(t, "201", sc.ProcessingCode)
 				assert.Equal(t, "TN-77add76c-e395-446b-b306-1a0f9cb99a31", sc.OrgID)
 				assert.Equal(t, int64(1), sc.ProgramID)
 				assert.Equal(t, int64(1), sc.Version)
@@ -226,7 +249,8 @@ func TestService_FindConfigByLevel(t *testing.T) {
 					}
 					return Config{}, ErrConfigNotFound{}
 				}).Times(2)
-				return New(r)
+				t := NewMockTopic(ctrl)
+				return New(r, t)
 			},
 			args: func() (string, string, int64) {
 				return "201", "TN-77add76c-e395-446b-b306-1a0f9cb99a31", 1
@@ -234,7 +258,7 @@ func TestService_FindConfigByLevel(t *testing.T) {
 			want: func(t *testing.T, sc Config, e error) {
 				assert.Nil(t, e)
 				assert.Equal(t, TenantLevel, sc.Level)
-				assert.Equal(t, "201", sc.ProcessCode)
+				assert.Equal(t, "201", sc.ProcessingCode)
 				assert.Equal(t, "TN-77add76c-e395-446b-b306-1a0f9cb99a31", sc.OrgID)
 				assert.Equal(t, int64(1), sc.Version)
 			},
@@ -244,7 +268,8 @@ func TestService_FindConfigByLevel(t *testing.T) {
 			setup: func(ctrl *gomock.Controller) *Service {
 				r := NewMockRepository(ctrl)
 				r.EXPECT().FindConfigByLevel(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(Config{}, ErrConfigNotFound{}).Times(2)
-				return New(r)
+				t := NewMockTopic(ctrl)
+				return New(r, t)
 			},
 			args: func() (string, string, int64) {
 				return "201", "TN-77add76c-e395-446b-b306-1a0f9cb99a31", 1
@@ -284,7 +309,8 @@ func TestService_FindAllScripts(t *testing.T) {
 					}
 					return nil, ErrConfigNotFound{}
 				}).Times(1)
-				return New(r)
+				t := NewMockTopic(ctrl)
+				return New(r, t)
 			},
 			args: func() (string, int64) {
 				return "TN-77add76c-e395-446b-b306-1a0f9cb99a31", 1
@@ -301,7 +327,8 @@ func TestService_FindAllScripts(t *testing.T) {
 				r.EXPECT().FindAllConfigs(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, orgID string, programID *int64) ([]Config, error) {
 					return nil, ErrConfigNotFound{}
 				}).Times(1)
-				return New(r)
+				t := NewMockTopic(ctrl)
+				return New(r, t)
 			},
 			args: func() (string, int64) {
 				return "TN-77add76c-e395-446b-b306-1a0f9cb99a31", 1
@@ -337,24 +364,24 @@ func fakeSliceScripts(level Level, quant int) []Config {
 func fakeScript(level Level, event string, description string) Config {
 	e, _ := strconv.ParseInt(event, 10, 64)
 	return Config{
-		ConfigID:    "script-1234",
-		Level:       level,
-		ProcessCode: event,
-		OrgID:       "TN-77add76c-e395-446b-b306-1a0f9cb99a31",
-		ProgramID:   1,
-		Description: description,
+		ConfigID:       "script-1234",
+		Level:          level,
+		ProcessingCode: event,
+		OrgID:          "TN-77add76c-e395-446b-b306-1a0f9cb99a31",
+		ProgramID:      1,
+		Description:    description,
 		Scripts: []Script{
 			{
 				ScriptID:    e,
 				Flow:        Regular,
 				Description: description,
-				Expression:  "Amount.amount",
+				Expression:  "Amounts.amount",
 			},
 			{
 				ScriptID:    401,
 				Flow:        Regular,
 				Description: "IOF",
-				Expression:  "Amount.amount",
+				Expression:  "Fees.iof",
 			},
 		},
 		Enable:    true,

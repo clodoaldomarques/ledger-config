@@ -4,7 +4,7 @@ variable "account-id" {
 }
 
 resource "aws_sns_topic" "config-sns-topic" {
-  name = "script-sns-topic"
+  name = "config-sns-topic"
 }
 
 resource "aws_sns_topic_policy" "default" {

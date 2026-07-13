@@ -12,6 +12,7 @@ type Config struct {
 	AwsRegion          string
 	AwsAccessKeyID     string
 	AwsSecretAccessKey string
+	ConfigTopic        string
 	GriphookIAUrl      string
 }
 
@@ -30,6 +31,7 @@ func New(options ...Option) *Config {
 			AwsRegion:          env.GetString("AWS_REGION", ""),
 			AwsAccessKeyID:     env.GetString("AWS_ACCESS_KEY_ID", ""),
 			AwsSecretAccessKey: env.GetString("AWS_SECRET_ACCESS_KEY", ""),
+			ConfigTopic:        env.GetString("CONFIG_SNS_TOPIC", ""),
 			GriphookIAUrl:      env.GetString("IA_URL", ""),
 		}
 	})
@@ -70,4 +72,8 @@ func (c Config) AccessKeyID() string {
 }
 func (c Config) SecretAccessKey() string {
 	return c.AwsSecretAccessKey
+}
+
+func (c Config) TopicARN() string {
+	return c.ConfigTopic
 }

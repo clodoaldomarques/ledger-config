@@ -17,13 +17,13 @@ var (
 )
 
 type PostConfigRequest struct {
-	Level       string           `json:"level" validate:"required"`
-	ProcessCode string           `json:"process_code" validate:"required"`
-	ProgramID   *int64           `json:"program_id,omitempty"`
-	Description string           `json:"description" validate:"required"`
-	Accounts    []AccountRequest `json:"accounts,omitempty"`
-	Scripts     []ScriptRequest  `json:"scripts" validate:"required"`
-	Enable      *bool            `json:"enable,omitempty"`
+	Level          string           `json:"level" validate:"required"`
+	ProcessingCode string           `json:"processing_code" validate:"required"`
+	ProgramID      *int64           `json:"program_id,omitempty"`
+	Description    string           `json:"description" validate:"required"`
+	Accounts       []AccountRequest `json:"accounts,omitempty"`
+	Scripts        []ScriptRequest  `json:"scripts" validate:"required"`
+	Enable         *bool            `json:"enable,omitempty"`
 }
 
 func (p PostConfigRequest) Validate() error {
@@ -53,15 +53,15 @@ func (p PostConfigRequest) Validate() error {
 
 func (p PostConfigRequest) PostToEntity(orgID string) ledger.Config {
 	scr := ledger.Config{
-		Level:       ledger.Level(p.Level),
-		ProcessCode: strings.ToUpper(p.ProcessCode),
-		OrgID:       orgID,
-		Description: p.Description,
-		Scripts:     make([]ledger.Script, 0, len(p.Scripts)),
-		CreatedAt:   time.Now().UTC(),
-		UpdatedAt:   time.Now().UTC(),
-		Enable:      true,
-		Version:     1,
+		Level:          ledger.Level(p.Level),
+		ProcessingCode: strings.ToUpper(p.ProcessingCode),
+		OrgID:          orgID,
+		Description:    p.Description,
+		Scripts:        make([]ledger.Script, 0, len(p.Scripts)),
+		CreatedAt:      time.Now().UTC(),
+		UpdatedAt:      time.Now().UTC(),
+		Enable:         true,
+		Version:        1,
 	}
 
 	if p.ProgramID != nil {

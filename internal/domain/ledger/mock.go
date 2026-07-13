@@ -8,6 +8,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	program "github.com/clodoaldomarques/ledger-config/internal/domain/program"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -105,4 +106,94 @@ func (m *MockRepository) UpdateConfig(ctx context.Context, s Config) error {
 func (mr *MockRepositoryMockRecorder) UpdateConfig(ctx, s interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateConfig", reflect.TypeOf((*MockRepository)(nil).UpdateConfig), ctx, s)
+}
+
+// MockProgramAPI is a mock of ProgramAPI interface.
+type MockProgramAPI struct {
+	ctrl     *gomock.Controller
+	recorder *MockProgramAPIMockRecorder
+}
+
+// MockProgramAPIMockRecorder is the mock recorder for MockProgramAPI.
+type MockProgramAPIMockRecorder struct {
+	mock *MockProgramAPI
+}
+
+// NewMockProgramAPI creates a new mock instance.
+func NewMockProgramAPI(ctrl *gomock.Controller) *MockProgramAPI {
+	mock := &MockProgramAPI{ctrl: ctrl}
+	mock.recorder = &MockProgramAPIMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockProgramAPI) EXPECT() *MockProgramAPIMockRecorder {
+	return m.recorder
+}
+
+// FindAllProgramaByOrgID mocks base method.
+func (m *MockProgramAPI) FindAllProgramaByOrgID(ctx context.Context, orgID string) ([]program.Program, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindAllProgramaByOrgID", ctx, orgID)
+	ret0, _ := ret[0].([]program.Program)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindAllProgramaByOrgID indicates an expected call of FindAllProgramaByOrgID.
+func (mr *MockProgramAPIMockRecorder) FindAllProgramaByOrgID(ctx, orgID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAllProgramaByOrgID", reflect.TypeOf((*MockProgramAPI)(nil).FindAllProgramaByOrgID), ctx, orgID)
+}
+
+// FindProgramaByID mocks base method.
+func (m *MockProgramAPI) FindProgramaByID(ctx context.Context, orgID string, programID int) (program.Program, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindProgramaByID", ctx, orgID, programID)
+	ret0, _ := ret[0].(program.Program)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindProgramaByID indicates an expected call of FindProgramaByID.
+func (mr *MockProgramAPIMockRecorder) FindProgramaByID(ctx, orgID, programID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindProgramaByID", reflect.TypeOf((*MockProgramAPI)(nil).FindProgramaByID), ctx, orgID, programID)
+}
+
+// MockTopic is a mock of Topic interface.
+type MockTopic struct {
+	ctrl     *gomock.Controller
+	recorder *MockTopicMockRecorder
+}
+
+// MockTopicMockRecorder is the mock recorder for MockTopic.
+type MockTopicMockRecorder struct {
+	mock *MockTopic
+}
+
+// NewMockTopic creates a new mock instance.
+func NewMockTopic(ctrl *gomock.Controller) *MockTopic {
+	mock := &MockTopic{ctrl: ctrl}
+	mock.recorder = &MockTopicMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockTopic) EXPECT() *MockTopicMockRecorder {
+	return m.recorder
+}
+
+// Emit mocks base method.
+func (m *MockTopic) Emit(ctx context.Context, cid string, e Config) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Emit", ctx, cid, e)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Emit indicates an expected call of Emit.
+func (mr *MockTopicMockRecorder) Emit(ctx, cid, e interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Emit", reflect.TypeOf((*MockTopic)(nil).Emit), ctx, cid, e)
 }

@@ -14,17 +14,17 @@ const (
 )
 
 type Config struct {
-	ConfigID    string
-	Level       Level
-	ProcessCode string
-	OrgID       string
-	ProgramID   int64
-	Description string
-	Scripts     []Script
-	Enable      bool
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	Version     int64
+	ConfigID       string
+	Level          Level
+	ProcessingCode string
+	OrgID          string
+	ProgramID      int64
+	Description    string
+	Scripts        []Script
+	Enable         bool
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	Version        int64
 }
 
 func (c Config) Validate() error {
