@@ -28,6 +28,9 @@ type Config struct {
 }
 
 func (c Config) Validate() error {
+	if c.ProcessingCode == "" {
+		return fmt.Errorf("processing_code is required")
+	}
 	switch c.Level {
 	case TenantLevel:
 		if c.ProgramID != 0 {

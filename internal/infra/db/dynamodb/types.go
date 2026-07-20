@@ -8,25 +8,25 @@ import (
 )
 
 type Config struct {
-	OrgID       string    `dynamodbav:"org_id"`
-	ConfigID    string    `dynamodbav:"config_id"`
-	Filters     string    `dynamodbav:"filters"`
-	Level       string    `dynamodbav:"level"`
-	ProcessCode string    `dynamodbav:"process_code"`
-	ProgramID   *int64    `dynamodbav:"program_id,omitempty"`
-	Description string    `dynamodbav:"description"`
-	Scripts     []Script  `dynamodbav:"scripts"`
-	Enable      bool      `dynamodbav:"enable"`
-	CreatedAt   time.Time `dynamodbav:"created_at"`
-	UpdatedAt   time.Time `dynamodbav:"updated_at"`
-	Version     int64     `dynamodbav:"version"`
+	OrgID          string    `dynamodbav:"org_id"`
+	ConfigID       string    `dynamodbav:"config_id"`
+	Filters        string    `dynamodbav:"filters"`
+	Level          string    `dynamodbav:"level"`
+	ProcessingCode string    `dynamodbav:"processing_code"`
+	ProgramID      *int64    `dynamodbav:"program_id,omitempty"`
+	Description    string    `dynamodbav:"description"`
+	Scripts        []Script  `dynamodbav:"scripts"`
+	Enable         bool      `dynamodbav:"enable"`
+	CreatedAt      time.Time `dynamodbav:"created_at"`
+	UpdatedAt      time.Time `dynamodbav:"updated_at"`
+	Version        int64     `dynamodbav:"version"`
 }
 
 func (s Config) toEntity() ledger.Config {
 	scr := ledger.Config{
 		ConfigID:       s.ConfigID,
 		Level:          ledger.Level(s.Level),
-		ProcessingCode: s.ProcessCode,
+		ProcessingCode: s.ProcessingCode,
 		OrgID:          s.OrgID,
 		Description:    s.Description,
 		Scripts:        make([]ledger.Script, 0),
@@ -49,17 +49,17 @@ func (s Config) toEntity() ledger.Config {
 
 func buildConfigTable(s ledger.Config) Config {
 	st := Config{
-		OrgID:       s.OrgID,
-		ConfigID:    s.ConfigID,
-		Filters:     buildFilters(string(s.Level), s.OrgID, s.ProcessingCode, s.ProgramID),
-		Level:       string(s.Level),
-		ProcessCode: s.ProcessingCode,
-		Description: s.Description,
-		Scripts:     make([]Script, 0),
-		Enable:      s.Enable,
-		CreatedAt:   s.CreatedAt,
-		UpdatedAt:   s.UpdatedAt,
-		Version:     s.Version,
+		OrgID:          s.OrgID,
+		ConfigID:       s.ConfigID,
+		Filters:        buildFilters(string(s.Level), s.OrgID, s.ProcessingCode, s.ProgramID),
+		Level:          string(s.Level),
+		ProcessingCode: s.ProcessingCode,
+		Description:    s.Description,
+		Scripts:        make([]Script, 0),
+		Enable:         s.Enable,
+		CreatedAt:      s.CreatedAt,
+		UpdatedAt:      s.UpdatedAt,
+		Version:        s.Version,
 	}
 
 	if s.ProgramID != 0 {

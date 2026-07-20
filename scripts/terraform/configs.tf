@@ -17,7 +17,7 @@ resource "aws_dynamodb_table_item" "ledger-101" {
     "scripts"     = { "L" : [
       {
         "M" : {
-          "expression"    : { "S" : "Amount.amount + Fee.iof" },
+          "expression"    : { "S" : "Amounts.amount + Fees.iof" },
           "script_id"     : { "N" : "101" },
           "description"   : { "S" : "Compra a vista - Cartão" },
           "flow"          : { "S" : "regular" },
@@ -25,7 +25,7 @@ resource "aws_dynamodb_table_item" "ledger-101" {
       },
       {
         "M" : {
-          "expression"     : { "S" : "Amount.amount" },
+          "expression"     : { "S" : "Amounts.amount" },
           "script_id"      : { "N" : "101" },
           "description"    : { "S" : "Compra a vista - PIX" },
           "flow"           : { "S" : "migration" },
