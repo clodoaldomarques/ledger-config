@@ -9,7 +9,7 @@ down:
 	docker compose down -v
 
 run:
-	go run cmd/main.go
+	export $$(cat .env | xargs) && go run cmd/main.go
 
 build:
 	docker build -t $(repository)/$(api):$(version) -f scripts/docker/api/Dockerfile .
