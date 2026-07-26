@@ -1,0 +1,167 @@
+version: '3.8'
+
+services:
+  # ==================== LOCALSTACK ====================
+  localstack:
+    image: localstack/localstack:3.7.0
+    container_name: localstack
+    restart: unless-stopped
+    ports:
+      - "4566:4566"
+    environment:
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-dummy}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-dummy}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-us-east-1}
+      SERVICES: sqs,sns,dynamodb
+      PERSISTENCE: "1"
+      DATA_DIR: /var/lib/localstack
+      LS_LOG: warn
+      DEBUG: "0"
+      DISABLE_CORS_CHECKS: "1"
+      SKIP_SIGNATURE_VALIDATION: "1"
+    volumes:
+      - localstack-storage:/var/lib/localstack
+    user: "1000:1000"
+    read_only: false
+    stop_grace_period: 30s
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+
+  # ==================== MOCKSERVER ====================
+  mockserver:
+    image: mockserver/mockserver:latest
+    container_name: mockserver
+    restart: unless-stopped
+    ports:
+      - "1080:1080"
+    environment:
+      SERVER_PORT: "1080"
+      MOCKSERVER_LOG_LEVEL: "INFO"
+      MOCKSERVER_INITIALIZATION_JSON_PATH: "/config/expectations.json"
+    volumes:
+      - ./scripts/docker/mockserver/expectations.json:/config/expectations.json:ro
+    user: "1000:1000"
+    read_only: false
+    stop_grace_period: 30s
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:1080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+
+  # ==================== OTEL COLLECTOR ====================
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.120.0
+    container_name: otel-collector
+    restart: unless-stopped
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+      - "8888:8888"   # Métricas do próprio collector (para o Prometheus scrappar)
+    command: ["--config=/conf/config.yaml"]
+    volumes:
+      - ./scripts/docker/otel/config.yaml:/conf/config.yaml:ro
+    environment:
+      - POD_IP=${POD_IP:-127.0.0.1}
+    stop_grace_period: 30s
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:13133/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+
+  # ==================== REDIS ====================
+  redis:
+    image: redis:latest
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    stop_grace_period: 30s
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+
+  # ==================== STACKPORT ====================
+  stackport:
+    image: davireis/stackport:latest
+    container_name: stackport
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      AWS_ENDPOINT_URL: "http://localstack:4566"
+      AWS_REGION: ${AWS_DEFAULT_REGION:-us-east-1}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-dummy}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-dummy}
+      PORT: "8080"
+    depends_on:
+      localstack:
+        condition: service_healthy
+    stop_grace_period: 30s
+
+
+  # ==================== ZIPKIN ====================
+  zipkin:
+    image: openzipkin/zipkin:latest
+    container_name: zipkin
+    restart: unless-stopped
+    ports:
+      - "9411:9411"        # UI e API
+    environment:
+      - STORAGE_TYPE=mem   # armazenamento em memória (para testes)
+    stop_grace_period: 30s
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9411/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+
+  # ==================== PROMETHEUS ====================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./scripts/docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    stop_grace_period: 30s
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+
+# ==================== VOLUMES ====================
+volumes:
+  localstack-storage:
+    name: localstack-storage
+  mysql-storage:
+    name: mysql-storage
+  prometheus-data:
+    name: prometheus-datamake

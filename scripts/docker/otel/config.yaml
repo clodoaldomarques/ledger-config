@@ -1,0 +1,41 @@
+# Opcional para satisfazer validação da IDE
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    send_batch_size: 1000
+    timeout: 1s
+
+exporters:
+  debug:
+    verbosity: detailed
+  zipkin:
+    endpoint: "http://localhost:9411/api/v2/spans"
+    format: "json"
+    # TLS desabilitado para ambiente local
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+
+service:
+  extensions: [health_check]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug, zipkin]   # envia para ambos: log e Zipkin
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug]            # também pode enviar para Prometheus via remote write, mas vamos deixar o Prometheus scrappar o endpoint /metrics
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug]

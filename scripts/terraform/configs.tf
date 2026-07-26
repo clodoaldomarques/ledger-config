@@ -11,7 +11,7 @@ resource "aws_dynamodb_table_item" "ledger-101" {
     "level"       = { "S" = "platform" },
     "enable"      = { "BOOL" = true },
     "version"     = { "N" = "2" },
-    "process_code" = { "S" = "101" },
+    "processing_code" = { "S" = "101" },
     "created_at"  = { "S" = timestamp() },
     "updated_at"  = { "S" = timestamp() },
     "scripts"     = { "L" : [

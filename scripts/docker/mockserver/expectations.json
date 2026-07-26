@@ -1,0 +1,28 @@
+[
+      {
+        "httpRequest": {
+          "path": "/api/health",
+          "method": "GET"
+        },
+        "httpResponse": {
+          "statusCode": 200,
+          "body": "{\"status\":\"ok\"}",
+          "headers": {
+            "Content-Type": "application/json"
+          }
+        }
+      },
+      {
+        "httpRequest": {
+          "path": "/api/users",
+          "method": "GET"
+        },
+        "httpResponse": {
+          "statusCode": 200,
+          "body": "[{\"id\":1,\"name\":\"João\"},{\"id\":2,\"name\":\"Maria\"}]",
+          "headers": {
+            "Content-Type": "application/json"
+          }
+        }
+      }
+]

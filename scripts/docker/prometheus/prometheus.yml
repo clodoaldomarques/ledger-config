@@ -1,0 +1,15 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'opentelemetry-collector'
+    static_configs:
+      - targets: ['otel-collector:8888']
+    metrics_path: '/metrics'
+    scheme: 'http'
+
+  # Opcional: adicione outros jobs para scrappar outros serviços (ex: stackport, redis, mysql, etc.)
+  # - job_name: 'stackport'
+  #   static_configs:
+  #     - targets: ['stackport:8080']

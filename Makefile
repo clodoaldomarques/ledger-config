@@ -1,6 +1,13 @@
 api = ledger-config
 repository = clodoaldomarques
 
+up: 
+	docker compose up -d 
+	$(MAKE) terraform
+
+down: 
+	docker compose down -v
+
 run:
 	go run cmd/main.go
 
@@ -17,20 +24,24 @@ publish: build push
 version:
 	docker images | grep $(api)
 
-apply: 
-	kubectl apply -f scripts/k8s/
-	until nc -z 192.168.49.2 30002; do echo waiting for localstack; sleep 2; done;
-	terraform -chdir=scripts/terraform/ plan
-	terraform -chdir=scripts/terraform/ apply -auto-approve
+restart: down up	
 
-destroy:
-	kubectl delete -f scripts/k8s/ --ignore-not-found
-	terraform -chdir=scripts/terraform/ destroy -auto-approve
-
-restart: destroy apply
+logs:
+	docker compose logs
 
 terraform:
-	terraform -chdir=scripts/terraform/ init
+	@if [ ! -d "scripts/terraform/.terraform" ]; then \
+		echo "▶️  Inicializando Terraform..."; \
+		terraform -chdir=scripts/terraform/ init; \
+	else \
+		echo "✅ Terraform já inicializado (pulando init)."; \
+	fi
+	@echo "⏳ Aguardando LocalStack na porta 4566..."
+	@until nc -z localhost 4566; do echo "⏳ esperando..."; sleep 2; done
+	@echo "📋 Gerando plano..."
+	terraform -chdir=scripts/terraform/ plan
+	@echo "🚀 Aplicando..."
+	terraform -chdir=scripts/terraform/ apply -auto-approve
 
 test:
 	go test ./... -coverprofile cover.out

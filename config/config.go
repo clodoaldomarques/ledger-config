@@ -26,13 +26,12 @@ var (
 func New(options ...Option) *Config {
 	singleton.Do(func() {
 		instance = &Config{
-			AppPort:            env.GetInt("APP_PORT", 8080),
+			AppPort:            env.GetInt("APP_PORT", 5000),
 			AwsAddress:         env.GetString("AWS_ADDRESS", ""),
 			AwsRegion:          env.GetString("AWS_REGION", ""),
 			AwsAccessKeyID:     env.GetString("AWS_ACCESS_KEY_ID", ""),
 			AwsSecretAccessKey: env.GetString("AWS_SECRET_ACCESS_KEY", ""),
 			ConfigTopic:        env.GetString("CONFIG_SNS_TOPIC", ""),
-			GriphookIAUrl:      env.GetString("IA_URL", ""),
 		}
 	})
 
