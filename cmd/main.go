@@ -16,17 +16,17 @@ import (
 )
 
 func main() {
+	ctx := context.Background()
+	opentelemetry.Start(ctx)
 
 	s := server.New()
 	go func() {
-		c := config.New(config.WithAppPort(5000))
+		c := config.New(config.WithAppPort(5001))
 		err := s.Start(c.AppPort)
 		if err != http.ErrServerClosed {
-			logger.Fatal(context.Background(), err.Error(), logger.Fields{})
+			logger.Fatal(ctx, err.Error(), logger.Fields{})
 		}
 	}()
-
-	opentelemetry.Start(context.Background())
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)

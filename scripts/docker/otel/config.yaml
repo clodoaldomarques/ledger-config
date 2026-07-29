@@ -1,4 +1,3 @@
-# Opcional para satisfazer validação da IDE
 receivers:
   otlp:
     protocols:
@@ -16,9 +15,8 @@ exporters:
   debug:
     verbosity: detailed
   zipkin:
-    endpoint: "http://localhost:9411/api/v2/spans"
+    endpoint: "http://zipkin:9411/api/v2/spans"
     format: "json"
-    # TLS desabilitado para ambiente local
 
 extensions:
   health_check:
@@ -30,11 +28,11 @@ service:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [debug, zipkin]   # envia para ambos: log e Zipkin
+      exporters: [debug, zipkin]   
     metrics:
       receivers: [otlp]
       processors: [batch]
-      exporters: [debug]            # também pode enviar para Prometheus via remote write, mas vamos deixar o Prometheus scrappar o endpoint /metrics
+      exporters: [debug]
     logs:
       receivers: [otlp]
       processors: [batch]
