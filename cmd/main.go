@@ -21,7 +21,7 @@ func main() {
 
 	s := server.New()
 	go func() {
-		c := config.New(config.WithAppPort(5001))
+		c := config.New()
 		err := s.Start(c.AppPort)
 		if err != http.ErrServerClosed {
 			logger.Fatal(ctx, err.Error(), logger.Fields{})
