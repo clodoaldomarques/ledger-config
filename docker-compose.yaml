@@ -156,7 +156,6 @@ services:
       retries: 3
       start_period: 10s
 
-
 # ==================== VOLUMES ====================
 volumes:
   localstack-storage:
@@ -164,4 +163,4 @@ volumes:
   mysql-storage:
     name: mysql-storage
   prometheus-data:
-    name: prometheus-datamake
+    name: prometheus-data
