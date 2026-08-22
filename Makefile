@@ -31,18 +31,26 @@ logs:
 
 terraform:
 	@if [ ! -d "scripts/terraform/.terraform" ]; then \
-		echo "▶️  Inicializando Terraform..."; \
-		terraform -chdir=scripts/terraform/ init; \
-	else \
-		echo "✅ Terraform já inicializado (pulando init)."; \
+		terraform -chdir=scripts/terraform/ init;\
 	fi
-	@echo "⏳ Aguardando LocalStack na porta 4566..."
-	@until nc -z localhost 4566; do echo "⏳ esperando..."; sleep 2; done
-	@echo "📋 Gerando plano..."
+	until nc -z 192.168.49.2 30002; do echo waiting for localstack; sleep 2; done;
 	terraform -chdir=scripts/terraform/ plan
-	@echo "🚀 Aplicando..."
 	terraform -chdir=scripts/terraform/ apply -auto-approve
 
 test:
 	go test ./... -coverprofile cover.out
 	go tool cover -html=cover.out
+
+version:
+	docker images | grep $(api)
+
+
+apply: 
+	kubectl apply -f scripts/k8s/
+	$(MAKE) terraform
+
+destroy:
+	kubectl delete -f scripts/k8s/ --ignore-not-found
+	terraform -chdir=scripts/terraform/ destroy -auto-approve
+
+reload: destroy apply

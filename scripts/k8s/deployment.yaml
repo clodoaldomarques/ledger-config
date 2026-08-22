@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ledger-config
+  labels:
+    com.job.service: ledger-config
+    tier: golang
+spec:
+  selector: 
+    matchLabels:
+      com.job.service: ledger-config
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels: 
+        com.job.service: ledger-config
+        tier: golang
+    spec:
+      serviceAccountName: default
+      containers:
+        - name: accounting-app
+          image: clodoaldomarques/ledger-config:latest
+          imagePullPolicy: "Always"
+          env:
+            - name: AWS_ADDRESS
+              value: "http://localstack-service:4566"
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                 secretKeyRef:
+                   name: aws-credentials
+                   key: AWS_ACCESS_KEY_ID 
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                 secretKeyRef:
+                   name: aws-credentials
+                   key: AWS_SECRET_ACCESS_KEY 
+            - name: AWS_REGION
+              value: "us-east-1"
+            - name: CONFIG_SNS_TOPIC
+              value: arn:aws:sns:us-east-1:000000000000:config-sns-topic              
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "otel-service:4317"
+            - name: OTEL_SERVICE_NAME
+              value: "ledger-config"
+          ports:
+            - name: ledger-config
+              containerPort: 5000
