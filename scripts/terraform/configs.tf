@@ -10,14 +10,14 @@ resource "aws_dynamodb_table_item" "ledger-101" {
     "description" = { "S" = "Compra a vista" },
     "level"       = { "S" = "platform" },
     "enable"      = { "BOOL" = true },
-    "version"     = { "N" = "2" },
+    "version"     = { "N" = "3" },
     "processing_code" = { "S" = "101" },
     "created_at"  = { "S" = timestamp() },
     "updated_at"  = { "S" = timestamp() },
     "scripts"     = { "L" : [
       {
         "M" : {
-          "expression"    : { "S" : "Amounts.amount + Fees.iof" },
+          "expression"    : { "S" : "Amounts.TRANSACTION_AMOUNT + Fees.IOF" },
           "script_id"     : { "N" : "101" },
           "description"   : { "S" : "Compra a vista - Cartão" },
           "flow"          : { "S" : "regular" },
@@ -25,7 +25,7 @@ resource "aws_dynamodb_table_item" "ledger-101" {
       },
       {
         "M" : {
-          "expression"     : { "S" : "Amounts.amount" },
+          "expression"     : { "S" : "Amounts.TRANSACTION_AMOUNT - Fees.IOF" },
           "script_id"      : { "N" : "101" },
           "description"    : { "S" : "Compra a vista - PIX" },
           "flow"           : { "S" : "migration" },
