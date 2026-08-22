@@ -46,8 +46,9 @@ version:
 
 
 apply: 
-	kubectl apply -f scripts/k8s/
 	$(MAKE) terraform
+	kubectl apply -f scripts/k8s/
+
 
 destroy:
 	kubectl delete -f scripts/k8s/ --ignore-not-found
