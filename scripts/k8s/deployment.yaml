@@ -24,7 +24,7 @@ spec:
           imagePullPolicy: "Always"
           env:
             - name: AWS_ADDRESS
-              value: "http://localstack-service:4566"
+              value: "http://localstack:4566"
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                  secretKeyRef:
@@ -40,7 +40,7 @@ spec:
             - name: CONFIG_SNS_TOPIC
               value: arn:aws:sns:us-east-1:000000000000:config-sns-topic              
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: "otel-service:4317"
+              value: "otel:4317"
             - name: OTEL_SERVICE_NAME
               value: "ledger-config"
           ports:
