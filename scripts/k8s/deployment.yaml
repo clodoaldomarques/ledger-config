@@ -22,6 +22,13 @@ spec:
         - name: accounting-app
           image: clodoaldomarques/ledger-config:latest
           imagePullPolicy: "Always"
+          resources:  
+            requests:
+              cpu: "500m"      
+              memory: "256Mi"  
+            limits: 
+              cpu: "1000m"     
+              memory: "512Mi"  
           env:
             - name: AWS_ADDRESS
               value: "http://localstack:4566"
