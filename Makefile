@@ -45,8 +45,7 @@ version:
 	docker images | grep $(api)
 
 
-apply: 
-	$(MAKE) terraform
+apply: terraform
 	kubectl apply -f scripts/k8s/
 
 
