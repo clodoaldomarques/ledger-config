@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/clodoaldomarques/core-sdk/pkg/logger"
+	"github.com/clodoaldomarques/core-sdk/pkg/tracer"
 	"github.com/clodoaldomarques/ledger-config/internal/infra/rest/ledger"
 	"github.com/clodoaldomarques/ledger-config/internal/infra/rest/shared"
 	"github.com/go-playground/validator"
@@ -26,6 +27,9 @@ func New() *Server {
 
 func (s Server) routes() {
 	s.http.Validator = &CustomValidator{validator: validator.New()}
+
+	// tracer interceptor
+	s.http.Use(tracer.Interceptor())
 
 	// logger interceptor
 	s.http.Use(logger.InterceptorWithConfig(logger.InterceptorConfig{
