@@ -6,6 +6,7 @@ import (
 
 	"github.com/clodoaldomarques/core-sdk/pkg/logger"
 	"github.com/clodoaldomarques/core-sdk/pkg/sns"
+	"github.com/clodoaldomarques/core-sdk/pkg/tracer"
 	"github.com/clodoaldomarques/ledger-config/config"
 	"github.com/clodoaldomarques/ledger-config/internal/domain/ledger"
 	"github.com/google/uuid"
@@ -22,6 +23,12 @@ func New(ctx context.Context) *Topic {
 }
 
 func (t Topic) Emit(ctx context.Context, cid string, c ledger.Config) error {
+	span, ctx := tracer.NewSpanFromContext(ctx, "Topic::Emit", map[string]any{
+		"cid":    cid,
+		"config": c,
+	})
+	defer span.End()
+
 	evt := sns.Event{
 		EventID:   uuid.New(),
 		EventType: "ledger",

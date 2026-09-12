@@ -1,14 +1,14 @@
 package ledger
 
 import (
-	"io"
+	"context"
 	"net/http"
 	"strconv"
 	"strings"
 
+	"github.com/clodoaldomarques/core-sdk/pkg/tracer"
 	"github.com/clodoaldomarques/ledger-config/internal/domain/ledger"
 	"github.com/clodoaldomarques/ledger-config/internal/infra/db/dynamodb"
-	"github.com/clodoaldomarques/ledger-config/internal/infra/gringotts"
 	"github.com/clodoaldomarques/ledger-config/internal/infra/message"
 	"github.com/clodoaldomarques/ledger-config/internal/infra/rest/shared"
 	"github.com/google/uuid"
@@ -16,12 +16,8 @@ import (
 )
 
 func CreateConfig(c echo.Context) error {
-	orgID, cid, via := getHeaders(c)
-	ctx := c.Request().Context()
-
-	if via {
-		return Griphook(c)
-	}
+	span, ctx, cid, orgID := NewSpanFromContext(c, "Handler::CreateConfig")
+	defer span.End()
 
 	r := dynamodb.NewRepository()
 	defer r.Close()
@@ -33,15 +29,18 @@ func CreateConfig(c echo.Context) error {
 
 	psr := new(PostConfigRequest)
 	if err := c.Bind(psr); err != nil {
+		span.SetError(err)
 		return c.JSON(http.StatusBadRequest, shared.ErrResponse{Message: err.Error()})
 	}
 
 	if err := psr.Validate(); err != nil {
+		span.SetError(err)
 		return c.JSON(http.StatusBadRequest, shared.ErrResponse{Message: err.Error()})
 	}
 
-	saved, err := s.CreateScript(ctx, cid, psr.PostToEntity(orgID))
+	saved, err := s.CreateConfig(ctx, cid, psr.PostToEntity(orgID))
 	if err != nil {
+		span.SetError(err)
 		return c.JSON(http.StatusBadRequest, shared.ErrResponse{Message: err.Error()})
 	}
 
@@ -51,13 +50,10 @@ func CreateConfig(c echo.Context) error {
 }
 
 func UpdateConfig(c echo.Context) error {
-	orgID, cid, via := getHeaders(c)
-	configID := c.Param("config_id")
-	ctx := c.Request().Context()
+	span, ctx, cid, orgID := NewSpanFromContext(c, "Handler::UpdateConfig")
+	defer span.End()
 
-	if via {
-		return Griphook(c)
-	}
+	configID := c.Param("config_id")
 
 	r := dynamodb.NewRepository()
 	defer r.Close()
@@ -69,15 +65,18 @@ func UpdateConfig(c echo.Context) error {
 
 	psr := new(PathScriptRequest)
 	if err := c.Bind(psr); err != nil {
+		span.SetError(err)
 		return echo.ErrBadRequest
 	}
 
 	if err := psr.Validate(); err != nil {
+		span.SetError(err)
 		return c.JSON(http.StatusBadRequest, shared.ErrResponse{Message: err.Error()})
 	}
 
-	saved, err := s.UpdateScript(ctx, cid, configID, psr.PatchToEntity(orgID))
+	saved, err := s.UpdateConfig(ctx, cid, configID, psr.PatchToEntity(orgID))
 	if err != nil {
+		span.SetError(err)
 		return c.JSON(http.StatusBadRequest, shared.ErrResponse{Message: err.Error()})
 	}
 
@@ -87,9 +86,10 @@ func UpdateConfig(c echo.Context) error {
 }
 
 func DisableConfig(c echo.Context) error {
-	orgID, cid, _ := getHeaders(c)
+	span, ctx, cid, orgID := NewSpanFromContext(c, "Handler::DisableConfig")
+	defer span.End()
+
 	scriptID := c.Param("script_id")
-	ctx := c.Request().Context()
 	r := dynamodb.NewRepository()
 	defer r.Close()
 
@@ -98,8 +98,9 @@ func DisableConfig(c echo.Context) error {
 
 	s := ledger.New(r, t)
 
-	saved, err := s.DisableScript(ctx, cid, orgID, scriptID)
+	saved, err := s.DisableConfig(ctx, cid, orgID, scriptID)
 	if err != nil {
+		span.SetError(err)
 		return c.JSON(http.StatusBadRequest, shared.ErrResponse{Message: err.Error()})
 	}
 	resp := buildConfigResponse(saved)
@@ -107,9 +108,9 @@ func DisableConfig(c echo.Context) error {
 	return c.JSON(http.StatusOK, resp)
 }
 
-func ActivateOrgID(c echo.Context) error {
-	ctx := c.Request().Context()
-	cid := c.Request().Header.Get("x-cid")
+func ActivateTenant(c echo.Context) error {
+	span, ctx, cid, _ := NewSpanFromContext(c, "Handler::ActivateTenant")
+	defer span.End()
 
 	r := dynamodb.NewRepository()
 	defer r.Close()
@@ -121,15 +122,18 @@ func ActivateOrgID(c echo.Context) error {
 
 	poa := new(PostOrgActivate)
 	if err := c.Bind(poa); err != nil {
+		span.SetError(err)
 		return echo.ErrBadRequest
 	}
 
 	if err := poa.Validate(); err != nil {
+		span.SetError(err)
 		return c.JSON(http.StatusBadRequest, shared.ErrResponse{Message: err.Error()})
 	}
 
-	saved, err := s.ActivateOrgID(ctx, cid, poa.OrgID)
+	saved, err := s.ActivateTenant(ctx, cid, poa.OrgID)
 	if err != nil {
+		span.SetError(err)
 		return c.JSON(http.StatusBadRequest, shared.ErrResponse{Message: err.Error()})
 	}
 
@@ -143,12 +147,14 @@ func ActivateOrgID(c echo.Context) error {
 }
 
 func FindLedgerConfig(c echo.Context) error {
-	ctx := c.Request().Context()
-	orgID, cid, _ := getHeaders(c)
+	span, ctx, cid, orgID := NewSpanFromContext(c, "Handler::FindLedgerConfig")
+	defer span.End()
+
 	evtID := strings.ToUpper(c.Param("event_type_id"))
 
 	prgID, err := strconv.ParseInt(c.Param("program_id"), 10, 64)
 	if err != nil {
+		span.SetError(err)
 		return c.JSON(http.StatusNotFound, shared.ErrResponse{Message: err.Error()})
 	}
 
@@ -160,8 +166,9 @@ func FindLedgerConfig(c echo.Context) error {
 
 	s := ledger.New(r, t)
 
-	scr, err := s.FindScriptByLevel(ctx, cid, evtID, orgID, prgID)
+	scr, err := s.FindConfigByLevel(ctx, cid, evtID, orgID, prgID)
 	if err != nil {
+		span.SetError(err)
 		return c.JSON(http.StatusNotFound, shared.ErrResponse{Message: err.Error()})
 	}
 
@@ -171,8 +178,8 @@ func FindLedgerConfig(c echo.Context) error {
 }
 
 func FindAllLedgerConfig(c echo.Context) error {
-	orgID, cid, _ := getHeaders(c)
-	ctx := c.Request().Context()
+	span, ctx, cid, orgID := NewSpanFromContext(c, "Handler::FindAllLedgerConfig")
+	defer span.End()
 
 	r := dynamodb.NewRepository()
 	defer r.Close()
@@ -184,8 +191,9 @@ func FindAllLedgerConfig(c echo.Context) error {
 
 	prgID := getProgramIDQueryParams(c)
 
-	scrs, err := s.FindAllScripts(ctx, cid, orgID, prgID)
+	scrs, err := s.FindAllConfigs(ctx, cid, orgID, prgID)
 	if err != nil {
+		span.SetError(err)
 		return c.JSON(http.StatusBadRequest, shared.ErrResponse{Message: err.Error()})
 	}
 
@@ -198,40 +206,6 @@ func FindAllLedgerConfig(c echo.Context) error {
 	return c.JSON(http.StatusOK, resp)
 }
 
-func Griphook(c echo.Context) error {
-	ctx := c.Request().Context()
-	g := gringotts.New()
-
-	jsonData, err := io.ReadAll(c.Request().Body)
-	if err != nil {
-		return err
-	}
-
-	resp, err := g.ValidateJSONConfig(ctx, string(jsonData))
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, shared.ErrResponse{Message: err.Error()})
-	}
-
-	return c.JSON(http.StatusOK, resp)
-}
-
-func getHeaders(c echo.Context) (string, string, bool) {
-	orgID := c.Request().Header.Get("x-tenant")
-	cid := c.Request().Header.Get("x-cid")
-	via := c.Request().Header.Get("x-validate-ia")
-
-	if cid == "" {
-		cid = uuid.NewString()
-	}
-
-	val, err := strconv.ParseBool(via)
-	if err != nil {
-		val = false
-	}
-
-	return orgID, cid, val
-}
-
 func getProgramIDQueryParams(c echo.Context) *int64 {
 	prg := c.QueryParam("program_id")
 	prgID, err := strconv.ParseInt(prg, 10, 64)
@@ -239,4 +213,21 @@ func getProgramIDQueryParams(c echo.Context) *int64 {
 		return nil
 	}
 	return &prgID
+}
+
+func NewSpanFromContext(e echo.Context, name string) (*tracer.TraceSpan, context.Context, string, string) {
+	ctx := e.Request().Context()
+	cid := e.Request().Header.Get("x-cid")
+	orgID := e.Request().Header.Get("x-tenant")
+
+	if cid == "" {
+		cid = uuid.NewString()
+	}
+
+	span, ctx := tracer.NewSpanFromContext(ctx, name, map[string]any{
+		"cid":    cid,
+		"org_id": orgID,
+	})
+
+	return span, ctx, cid, orgID
 }

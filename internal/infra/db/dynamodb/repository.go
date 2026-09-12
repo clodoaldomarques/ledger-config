@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/clodoaldomarques/core-sdk/pkg/tracer"
 	"github.com/clodoaldomarques/ledger-config/internal/domain/ledger"
 )
 
@@ -25,7 +26,13 @@ func NewRepository() *Repository {
 	}
 }
 
-func (r Repository) SaveConfig(ctx context.Context, s ledger.Config) error {
+func (r Repository) SaveConfig(ctx context.Context, cid string, s ledger.Config) error {
+	span, ctx := tracer.NewSpanFromContext(ctx, "Repository::SaveConfig", map[string]any{
+		"cid":    cid,
+		"config": s,
+	})
+
+	defer span.End()
 	st := buildConfigTable(s)
 
 	item, err := attributevalue.MarshalMap(st)
@@ -46,7 +53,13 @@ func (r Repository) SaveConfig(ctx context.Context, s ledger.Config) error {
 	return nil
 }
 
-func (r Repository) UpdateConfig(ctx context.Context, s ledger.Config) error {
+func (r Repository) UpdateConfig(ctx context.Context, cid string, s ledger.Config) error {
+	span, ctx := tracer.NewSpanFromContext(ctx, "Repository::UpdateConfig", map[string]any{
+		"cid":    cid,
+		"config": s,
+	})
+	defer span.End()
+
 	st := buildConfigTable(s)
 
 	itemMap, err := attributevalue.MarshalMap(st)
@@ -99,7 +112,14 @@ func (r Repository) UpdateConfig(ctx context.Context, s ledger.Config) error {
 	return nil
 }
 
-func (r Repository) FindConfigByID(ctx context.Context, orgID string, configID string) (ledger.Config, error) {
+func (r Repository) FindConfigByID(ctx context.Context, cid string, orgID string, configID string) (ledger.Config, error) {
+	span, ctx := tracer.NewSpanFromContext(ctx, "Repository::FindConfigByID", map[string]any{
+		"cid":       cid,
+		"org_id":    orgID,
+		"config_id": configID,
+	})
+	defer span.End()
+
 	input := &dynamodb.GetItemInput{
 		TableName: aws.String(r.tableName),
 		Key: map[string]types.AttributeValue{
@@ -125,7 +145,16 @@ func (r Repository) FindConfigByID(ctx context.Context, orgID string, configID s
 	return script.toEntity(), nil
 }
 
-func (r Repository) FindConfigByLevel(ctx context.Context, level string, eventTypeID string, orgID string, programID *int64) (ledger.Config, error) {
+func (r Repository) FindConfigByLevel(ctx context.Context, cid string, level string, eventTypeID string, orgID string, programID *int64) (ledger.Config, error) {
+	span, ctx := tracer.NewSpanFromContext(ctx, "Repository::FindConfigByLevel", map[string]any{
+		"cid":           cid,
+		"level":         level,
+		"event_type_id": eventTypeID,
+		"org_id":        orgID,
+		"program_id":    programID,
+	})
+	defer span.End()
+
 	filters := buildFilters(level, orgID, eventTypeID, *programID)
 	input := &dynamodb.QueryInput{
 		TableName:              aws.String(r.tableName),
@@ -156,7 +185,14 @@ func (r Repository) FindConfigByLevel(ctx context.Context, level string, eventTy
 	return script.toEntity(), nil
 }
 
-func (r Repository) FindAllConfigs(ctx context.Context, orgID string, programID *int64) ([]ledger.Config, error) {
+func (r Repository) FindAllConfigs(ctx context.Context, cid string, orgID string, programID *int64) ([]ledger.Config, error) {
+	span, ctx := tracer.NewSpanFromContext(ctx, "Repository::FindAllConfigs", map[string]any{
+		"cid":        cid,
+		"org_id":     orgID,
+		"program_id": programID,
+	})
+	defer span.End()
+
 	input := buildInputQuery(r.tableName, orgID)
 	if programID != nil {
 		input = buildInputQueryWithFilters(r.tableName, orgID, *programID)
