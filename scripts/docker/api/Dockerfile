@@ -1,5 +1,5 @@
 ## build
-FROM golang:1.27.1 AS build
+FROM golang:1.27.1-alpine AS build
 
 WORKDIR /app
 
@@ -7,13 +7,12 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-COPY cmd/main.go .
-RUN go build -o /ledger-config
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /ledger-config ./cmd
 
 ## deploy
-FROM ubuntu AS base
+FROM alpine:3.20
 
-WORKDIR /
+RUN apk add --no-cache ca-certificates tzdata
 
 COPY --from=build /ledger-config /ledger-config
 
