@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/clodoaldomarques/core-sdk/pkg/tracer"
+	"github.com/clodoaldomarques/core-sdk/pkg/otel/tracer"
 	"github.com/clodoaldomarques/ledger-config/internal/domain/ledger"
 	"github.com/clodoaldomarques/ledger-config/internal/infra/db/dynamodb"
 	"github.com/clodoaldomarques/ledger-config/internal/infra/message"

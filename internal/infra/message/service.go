@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/clodoaldomarques/core-sdk/pkg/logger"
-	"github.com/clodoaldomarques/core-sdk/pkg/sns"
-	"github.com/clodoaldomarques/core-sdk/pkg/tracer"
+	"github.com/clodoaldomarques/core-sdk/pkg/aws/sns"
+	"github.com/clodoaldomarques/core-sdk/pkg/otel/logger"
+	"github.com/clodoaldomarques/core-sdk/pkg/otel/tracer"
 	"github.com/clodoaldomarques/ledger-config/config"
 	"github.com/clodoaldomarques/ledger-config/internal/domain/ledger"
 	"github.com/google/uuid"
