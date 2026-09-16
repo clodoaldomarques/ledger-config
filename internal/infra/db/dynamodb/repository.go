@@ -39,11 +39,6 @@ func (r Repository) SaveConfig(ctx context.Context, cid string, s ledger.Config)
 	item, err := attributevalue.MarshalMap(st)
 	if err != nil {
 		span.SetError(err)
-		logger.Error(ctx, err.Error(), logger.Fields{
-			"Error":  err.Error(),
-			"Cid":    cid,
-			"Config": s,
-		})
 		return fmt.Errorf("failed to marshal config: %w", err)
 	}
 
@@ -55,11 +50,6 @@ func (r Repository) SaveConfig(ctx context.Context, cid string, s ledger.Config)
 	_, err = r.client.PutItem(ctx, input)
 	if err != nil {
 		span.SetError(err)
-		logger.Error(ctx, err.Error(), logger.Fields{
-			"Error":  err.Error(),
-			"Cid":    cid,
-			"Config": s,
-		})
 		return fmt.Errorf("failed to put item in dynamodb: %w", err)
 	}
 
@@ -78,11 +68,6 @@ func (r Repository) UpdateConfig(ctx context.Context, cid string, s ledger.Confi
 	itemMap, err := attributevalue.MarshalMap(st)
 	if err != nil {
 		span.SetError(err)
-		logger.Error(ctx, err.Error(), logger.Fields{
-			"Error":  err.Error(),
-			"Cid":    cid,
-			"Config": s,
-		})
 		return fmt.Errorf("failed to marshal item: %w", err)
 	}
 
@@ -126,11 +111,6 @@ func (r Repository) UpdateConfig(ctx context.Context, cid string, s ledger.Confi
 	_, err = r.client.UpdateItem(ctx, input)
 	if err != nil {
 		span.SetError(err)
-		logger.Error(ctx, err.Error(), logger.Fields{
-			"Error":  err.Error(),
-			"Cid":    cid,
-			"Config": s,
-		})
 		return fmt.Errorf("failed to put item in dynamodb: %w", err)
 	}
 
@@ -156,12 +136,6 @@ func (r Repository) FindConfigByID(ctx context.Context, cid string, orgID string
 	result, err := r.client.GetItem(ctx, input)
 	if err != nil {
 		span.SetError(err)
-		logger.Error(ctx, err.Error(), logger.Fields{
-			"error":     err.Error(),
-			"cid":       cid,
-			"org_id":    orgID,
-			"config_id": configID,
-		})
 		return ledger.Config{}, fmt.Errorf("failed to get item: %w", err)
 	}
 
@@ -179,12 +153,6 @@ func (r Repository) FindConfigByID(ctx context.Context, cid string, orgID string
 	var script Config
 	if err := attributevalue.UnmarshalMap(result.Item, &script); err != nil {
 		span.SetError(err)
-		logger.Error(ctx, err.Error(), logger.Fields{
-			"error":     err.Error(),
-			"cid":       cid,
-			"org_id":    orgID,
-			"config_id": configID,
-		})
 		return ledger.Config{}, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 
@@ -217,27 +185,11 @@ func (r Repository) FindConfigByLevel(ctx context.Context, cid string, level str
 	result, err := r.client.Query(ctx, input)
 	if err != nil {
 		span.SetError(err)
-		logger.Error(ctx, err.Error(), logger.Fields{
-			"error":           err.Error(),
-			"cid":             cid,
-			"level":           level,
-			"processing_code": eventTypeID,
-			"org_id":          orgID,
-			"program_id":      programID,
-		})
 		return ledger.Config{}, fmt.Errorf("failed to get item: %w", err)
 	}
 
 	if len(result.Items) == 0 {
 		span.SetError(ErrConfigNotFound{})
-		logger.Error(ctx, ErrConfigNotFound{}.Error(), logger.Fields{
-			"error":           ErrConfigNotFound{}.Error(),
-			"cid":             cid,
-			"level":           level,
-			"processing_code": eventTypeID,
-			"org_id":          orgID,
-			"program_id":      programID,
-		})
 		return ledger.Config{}, ErrConfigNotFound{}
 	}
 
@@ -274,23 +226,12 @@ func (r Repository) FindAllConfigs(ctx context.Context, cid string, orgID string
 	result, err := r.client.Query(ctx, input)
 	if err != nil {
 		span.SetError(err)
-		logger.Error(ctx, err.Error(), logger.Fields{
-			"error":      err.Error(),
-			"cid":        cid,
-			"org_id":     orgID,
-			"program_id": programID,
-		})
+
 		return nil, fmt.Errorf("failed to get item: %w", err)
 	}
 
 	if len(result.Items) == 0 {
 		span.SetError(ErrConfigNotFound{})
-		logger.Error(ctx, ErrConfigNotFound{}.Error(), logger.Fields{
-			"error":      ErrConfigNotFound{}.Error(),
-			"cid":        cid,
-			"org_id":     orgID,
-			"program_id": programID,
-		})
 		return nil, ErrConfigNotFound{}
 	}
 
