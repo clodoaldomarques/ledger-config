@@ -2,16 +2,7 @@ package ledger
 
 import "fmt"
 
-type ErrDuplicatedScript struct {
-	msg string
-}
 
-func (e ErrDuplicatedScript) Error() string {
-	if e.msg == "" {
-		return "duplicated script"
-	}
-	return e.msg
-}
 
 type ErrDuplicatedAccount struct {
 	msg string
