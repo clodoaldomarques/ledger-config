@@ -13,6 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	ledger "github.com/clodoaldomarques/ledger-config/internal/domain/ledger"
 	program "github.com/clodoaldomarques/ledger-config/internal/domain/program"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -42,10 +43,10 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // FindAllConfigs mocks base method.
-func (m *MockRepository) FindAllConfigs(ctx context.Context, cid, orgID string, programID *int64) ([]Config, error) {
+func (m *MockRepository) FindAllConfigs(ctx context.Context, cid, orgID string, programID *int64) ([]ledger.Config, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindAllConfigs", ctx, cid, orgID, programID)
-	ret0, _ := ret[0].([]Config)
+	ret0, _ := ret[0].([]ledger.Config)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -57,10 +58,10 @@ func (mr *MockRepositoryMockRecorder) FindAllConfigs(ctx, cid, orgID, programID 
 }
 
 // FindConfigByID mocks base method.
-func (m *MockRepository) FindConfigByID(ctx context.Context, cid, orgID, configID string) (Config, error) {
+func (m *MockRepository) FindConfigByID(ctx context.Context, cid, orgID, configID string) (ledger.Config, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindConfigByID", ctx, cid, orgID, configID)
-	ret0, _ := ret[0].(Config)
+	ret0, _ := ret[0].(ledger.Config)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -72,10 +73,10 @@ func (mr *MockRepositoryMockRecorder) FindConfigByID(ctx, cid, orgID, configID a
 }
 
 // FindConfigByLevel mocks base method.
-func (m *MockRepository) FindConfigByLevel(ctx context.Context, cid, level, eventTypeID, orgID string, programID *int64) (Config, error) {
+func (m *MockRepository) FindConfigByLevel(ctx context.Context, cid, level, eventTypeID, orgID string, programID *int64) (ledger.Config, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindConfigByLevel", ctx, cid, level, eventTypeID, orgID, programID)
-	ret0, _ := ret[0].(Config)
+	ret0, _ := ret[0].(ledger.Config)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -87,7 +88,7 @@ func (mr *MockRepositoryMockRecorder) FindConfigByLevel(ctx, cid, level, eventTy
 }
 
 // SaveConfig mocks base method.
-func (m *MockRepository) SaveConfig(ctx context.Context, cid string, s Config) error {
+func (m *MockRepository) SaveConfig(ctx context.Context, cid string, s ledger.Config) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SaveConfig", ctx, cid, s)
 	ret0, _ := ret[0].(error)
@@ -101,7 +102,7 @@ func (mr *MockRepositoryMockRecorder) SaveConfig(ctx, cid, s any) *gomock.Call {
 }
 
 // UpdateConfig mocks base method.
-func (m *MockRepository) UpdateConfig(ctx context.Context, cid string, s Config) error {
+func (m *MockRepository) UpdateConfig(ctx context.Context, cid string, s ledger.Config) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateConfig", ctx, cid, s)
 	ret0, _ := ret[0].(error)
@@ -193,7 +194,7 @@ func (m *MockTopic) EXPECT() *MockTopicMockRecorder {
 }
 
 // Emit mocks base method.
-func (m *MockTopic) Emit(ctx context.Context, cid string, e Config) error {
+func (m *MockTopic) Emit(ctx context.Context, cid string, e ledger.Config) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Emit", ctx, cid, e)
 	ret0, _ := ret[0].(error)
