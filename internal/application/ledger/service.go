@@ -343,7 +343,7 @@ func (s Service) FindConfigByLevel(ctx context.Context, cid string, processingCo
 		})
 		logger.Info(ctx, "ledger ledger.Config found",
 			logger.Fields{
-				"level":  string(ledger.ProgramLevel),
+				"level":  string(ledger.TenantLevel),
 				"script": saved,
 			})
 		return saved, nil

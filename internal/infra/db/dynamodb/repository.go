@@ -189,7 +189,6 @@ func (r Repository) FindConfigByLevel(ctx context.Context, cid string, level str
 	}
 
 	if len(result.Items) == 0 {
-		span.SetError(ErrConfigNotFound{})
 		return ledger.Config{}, ErrConfigNotFound{}
 	}
 
