@@ -41,3 +41,7 @@ func (t Topic) Emit(ctx context.Context, cid string, c ledger.Config) error {
 func (t Topic) Close(ctx context.Context) {
 	logger.Info(ctx, "ending topic connection", logger.Fields{})
 }
+
+func (t Topic) Health() error {
+	return t.p.Health()
+}

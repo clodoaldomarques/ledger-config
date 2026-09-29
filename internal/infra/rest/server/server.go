@@ -4,9 +4,13 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/clodoaldomarques/core-sdk/pkg/otel/tracer"
 	"github.com/clodoaldomarques/core-sdk/pkg/zap/logger"
+
+	"github.com/clodoaldomarques/ledger-config/internal/infra/db/dynamodb"
+	"github.com/clodoaldomarques/ledger-config/internal/infra/message"
 	"github.com/clodoaldomarques/ledger-config/internal/infra/rest/ledger"
 	"github.com/clodoaldomarques/ledger-config/internal/infra/rest/shared"
 	"github.com/go-playground/validator"
@@ -39,8 +43,9 @@ func (s Server) routes() {
 		RedactFields:    []string{"password", "token", "credit_card"},
 	}))
 
-	// health check
-	s.http.GET("/", HealthCheck)
+	// Health
+	s.http.GET("/health/live", s.Liveness)
+	s.http.GET("/health/ready", s.Readiness)
 
 	// Ledger handler
 	s.http.POST("/v1/ledger/config", ledger.CreateConfig)
@@ -62,10 +67,28 @@ func (s *Server) Shutdown(ctx context.Context) error {
 	return s.http.Shutdown(ctx)
 }
 
-func HealthCheck(c echo.Context) error {
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"data": "Server is up and running",
-	})
+func (s *Server) Liveness(c echo.Context) error {
+	return c.NoContent(http.StatusOK)
+}
+
+func (s *Server) Readiness(c echo.Context) error {
+	ctx, cancel := context.WithTimeout(
+		c.Request().Context(),
+		500*time.Millisecond,
+	)
+	defer cancel()
+
+	err := dynamodb.NewRepository().Health(ctx)
+	if err != nil {
+		return c.NoContent(http.StatusServiceUnavailable)
+	}
+
+	err = message.New(ctx).Health()
+	if err != nil {
+		return c.NoContent(http.StatusServiceUnavailable)
+	}
+
+	return c.NoContent(http.StatusOK)
 }
 
 type CustomValidator struct {

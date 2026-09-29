@@ -254,6 +254,17 @@ func (r Repository) FindAllConfigs(ctx context.Context, cid string, orgID string
 	return scripts, nil
 }
 
+func (r Repository) Health(ctx context.Context) error {
+	_, err := r.client.DescribeTable(ctx, &dynamodb.DescribeTableInput{
+		TableName: aws.String(r.tableName),
+	})
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func buildInputQuery(tableName string, orgID string) *dynamodb.QueryInput {
 	return &dynamodb.QueryInput{
 		TableName:              aws.String(tableName),

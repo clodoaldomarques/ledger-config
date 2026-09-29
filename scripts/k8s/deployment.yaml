@@ -53,3 +53,21 @@ spec:
           ports:
             - name: ledger-config
               containerPort: 5000
+          
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: ledger-config
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: ledger-config
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 3
