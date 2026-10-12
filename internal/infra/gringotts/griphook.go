@@ -19,7 +19,7 @@ func New() *Griphook {
 	url := config.New().GriphookIAUrl
 	return &Griphook{
 		URL:   url,
-		Model: "griphook:latest", // ou "validador-payload"
+		Model: "griphook:latest",
 	}
 }
 
