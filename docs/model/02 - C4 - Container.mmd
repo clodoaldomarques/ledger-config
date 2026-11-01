@@ -1,0 +1,34 @@
+C4Container
+
+title Sistema de Contabilidade - Container Diagram
+
+
+Person_Ext(bank, "Agentes Financeiros", "Cliente externo que irá customizar<br/>  os roteiros  contábeis ou consultar <br/> um determinado evento contábel")
+
+System_Ext(transaction, "Sistema de transações financeiras", "", "Sistema responsável por gerenciar <br/> as transações financeiras")
+System_Ext(migration, "Sistema de migração de Contas", "", "Sistema que gerencia a migração <br/> de contas de um banco para outro")
+
+Container_Boundary(financial_accounting, "Sistema de Contabilidade") {
+    Container(ledgerWorker, "Serviço de Processamento <br/>de Eventos Contábeis", "Golang", "Processa os lançamentos contábeis e publica <br/> os eventos contábeis no tópico SNS")
+    Container(ledgerEvents, "Serviço de Eventos Contábeis", "Golang", "Gerencia os lançamentos contábeis<br/> processados pela plataforma")
+    Container(ledgerConfig, "Serviço de Configuração <br/> de Roteiros Contábeis", "Golang", "Gerencia os roteiros contábeis <br/> customizados pelo cliente")
+    ContainerDb(dynamoDB, "Banco de dados", "DynamoDB", "Armazena os dados dos <br/> roteiros contábeis")
+    ContainerDb(mysql, "Banco de dados", "MySQL", "Armazena os dados <br/> dos eventos contábeis")
+    ContainerQueue(configSnsTopic, "Servidor de Mensagens", "SNS", "Notifica outros serviços sobre <br/>criação ou mudanças nos <br/> roteiros contábeis")
+    ContainerQueue(eventsSnsTopic, "Servidor de Mensagens", "SNS", "Notifica outros serviços sobre <br/>criação dos eventos contábeis")
+
+    Rel(ledgerWorker, transaction, "Subscribe tópico para processar as transações", "SQS")   
+    Rel(ledgerWorker, ledgerEvents, "Publica os eventos contábeis no tópico", "JSON")
+    Rel(ledgerEvents, ledgerConfig, "Consulta os roteiros contábeis customizados", "JSON")
+    Rel(ledgerEvents, mysql, "Armazena os eventos contábeis processados", "JSON")
+    Rel(ledgerEvents, eventsSnsTopic, "Publica os eventos contábeis no tópico", "JSON")
+    Rel(ledgerConfig, dynamoDB, "Consome dados da transação publicados no tópico", "JSON")
+    Rel_D(ledgerConfig, configSnsTopic , "Consome os dados enfileirados", "JSON")
+}
+
+System_Ext(datalake, "Serviço de Relatórios", "Datalake", "Gerencia os relatórios financeiros e contábeis")
+
+Rel(bank, ledgerConfig, "Customiza um roteiro contábel", "JSON")
+Rel(bank, ledgerEvents, "Consulta os lançamentos contábeis, ou efetuar um lançamento contábil avulso", "JSON")
+
+Rel(datalake, eventsSnsTopic, "Subscribe tópico para processar os eventos contábeis", "SMS")

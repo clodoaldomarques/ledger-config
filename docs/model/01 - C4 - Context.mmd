@@ -1,0 +1,26 @@
+C4Context
+title C4 - Context Diagram 
+
+
+Person_Ext(bank, "Agentes Financeiros", "Cliente externo que irá customizar <br/> os roteiros contábeis ou consultar um <br/> determinado evento contábel")
+
+Enterprise_Boundary(enterprise, "Empresa de Serviços Financeiros") {
+
+  Boundary(financial_accounting, "Sistema de Contabilidade") {
+    System(ledger, "Sistema de Contabilidade", "Sistema responsável por gerenciar <br/> os roteiros e eventos contábeis")
+  }
+
+  Boundary(other, "Outros Contextos") {
+    System(transactions, "Sistema de transações financeiras", "Sistema responsável por <br/> gerenciar as transações financeiras")
+    System(migrations, "Sistema de migração de Contas", "Sistema que gerencia a migração das <br/> contas externas para o contexto da empresa")
+    System(datalake, "Sistema de Relatórios", "Sistema que gerencia os relatórios<br/> financeiros e contábeis")
+  }
+
+  Rel(datalake, ledger, "Consulta os lançamentos <br/> contábeis")
+  Rel(ledger, transactions, "Consulta os lançamentos <br/> financeiros")
+  Rel(ledger, migrations, "Consulta as contas <br/> migradas")
+}
+
+Rel_D(bank, ledger, "Customiza um roteiro contábel")
+Rel_D(bank, ledger, "Consulta os lançamentos contábeis, <br/> ou efetua um lançamento contábil avulso")
+Rel_D(bank, datalake, "Consulta os relatórios <br/> financeiros e contábeis")
