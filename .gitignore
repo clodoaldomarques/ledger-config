@@ -9,7 +9,6 @@ Dockerfile
 docker-compose*.yml
 
 # --- Documentação e editores ---
-*.md
 LICENSE
 .idea
 .vscode

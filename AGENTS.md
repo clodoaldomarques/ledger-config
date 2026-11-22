@@ -27,4 +27,4 @@
 
 ## Repo quirks
 
-- `.gitignore` ignores `*.md`, `.env`, `.vscode/`, `docker-compose*.yml`, Terraform state/lock files and `cover.out`. New Markdown files (including this one) need `git add -f` to be tracked; already-tracked files are unaffected.
+- `.gitignore` ignores `.env`, `.vscode/`, `docker-compose*.yml`, Terraform state/lock files and `cover.out`. Markdown files are tracked normally.
