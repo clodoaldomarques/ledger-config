@@ -4,198 +4,135 @@
 
 ## Overview
 
-Ledger Config is a backend service responsible for providing and managing accounting-related configuration used by the Ledger ecosystem.
-
-The project is part of a distributed backend architecture composed of independent services, with a dedicated API responsible for centralizing configuration concerns.
-
-The service was developed as a Go backend application with a structure designed to separate application, domain and infrastructure responsibilities.
+Ledger Config is a Go HTTP service that centralizes the ledger rules (scripts) used by other Ledger services. Configurations are stored in DynamoDB and every mutation publishes an event to an SNS topic. The service is built with Echo and instrumented with OpenTelemetry (traces, metrics and logs).
 
 ## Architecture
 
-The project follows a modular backend structure, separating the application entry point, configuration, documentation, internal implementation and infrastructure resources.
-
 ```text
-ledger-config/
-├── cmd/
-├── config/
-├── docs/
-├── internal/
-├── scripts/
-├── docker-compose.yaml
-├── Makefile
-├── go.mod
-└── go.sum
+cmd/                         entry point, graceful shutdown
+config/                      env-backed configuration singleton
+internal/
+  application/ledger/        business service, port interfaces, generated mocks
+  domain/ledger/             config/script entities and validation
+  domain/program/            program entity
+  infra/db/dynamodb/         ConfigTable repository
+  infra/message/             SNS publisher
+  infra/rest/server/         Echo router, middleware, health checks
+  infra/rest/ledger/         handlers and request/response DTOs
+  infra/gringotts/           Ollama client (currently unwired)
+scripts/                     Dockerfile, Terraform, k8s manifests, mockserver/OTEL/Prometheus config
+docs/                        Postman collection and C4 diagrams
 ```
 
-### Main components
+Request flow: `cmd/main.go` → `server.New()` → `internal/infra/rest/ledger` handler → `internal/application/ledger.Service` → `internal/domain/ledger`. Adapters live under `internal/infra`. Handlers build a new DynamoDB repository and SNS publisher per request; there is no DI container.
 
-#### `cmd/`
+Configurations have three levels: `platform` (team-owned), `tenant` (requires `org_id`) and `program` (requires `org_id` and `program_id`). A `processing_code` and at least one script are always required; each script needs a `flow` (`regular` or `migration`) and an `expression`.
 
-Contains the application entry point and service initialization.
+## HTTP API
 
-#### `config/`
+The service listens on `APP_PORT` (default `5000`). `x-tenant` supplies the organization id and `x-cid` the correlation id (generated when missing); neither is sent in the request body.
 
-Contains application configuration and configuration-related resources.
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/health/live` | Liveness probe |
+| `GET` | `/health/ready` | Checks DynamoDB and SNS (500 ms timeout) |
+| `POST` | `/v1/ledger/config` | Create a config → `201` |
+| `PATCH` | `/v1/ledger/config/:config_id` | Update description/scripts → `200` |
+| `DELETE` | `/v1/ledger/config/:config_id/disable` | Disable a config → `200` (see Known limitations) |
+| `GET` | `/v1/ledger/config/:event_type_id/:program_id` | Find by processing code (program level first, then tenant) → `200`/`404` |
+| `GET` | `/v1/ledger/configs?program_id=...` | List configs for the tenant → `200` |
+| `POST` | `/v1/ledger/org/activate` | Copy `LEDGER` platform configs into a tenant (`{"org_id":"..."}`) → `200` |
 
-#### `internal/`
+Example create body:
 
-Contains the application's internal implementation, keeping implementation details encapsulated within the service.
-
-#### `docs/`
-
-Contains project documentation and architectural resources.
-
-#### `scripts/`
-
-Contains supporting scripts and infrastructure resources used during development and deployment.
-
-## Responsibilities
-
-The main responsibility of Ledger Config is to provide a centralized API for accounting configuration.
-
-The service is designed to:
-
-- Manage accounting-related configuration
-- Expose configuration through an API
-- Centralize configuration rules used by Ledger services
-- Isolate configuration concerns from other business services
-- Provide a dedicated backend component within the Ledger ecosystem
-
-## Architecture Principles
-
-The project follows principles commonly used in modern backend systems:
-
-- **Separation of concerns** — application responsibilities are separated from infrastructure concerns.
-- **Encapsulation** — internal implementation details remain inside the service.
-- **Service isolation** — accounting configuration is managed independently from other Ledger components.
-- **Reusability** — configuration can be consumed by other services through the API.
-- **Cloud-native development** — the repository includes container and infrastructure resources for local and deployment environments.
-
-## Local Development
-
-### Requirements
-
-- Go
-- Docker
-- Docker Compose
-
-### Clone
-
-```bash
-git clone https://github.com/clodoaldomarques/ledger-config.git
-cd ledger-config
+```json
+{
+  "level": "program",
+  "processing_code": "101",
+  "program_id": 123,
+  "description": "Compra a vista",
+  "scripts": [
+    {
+      "script_id": 101,
+      "flow": "regular",
+      "description": "Compra a vista - Cartão",
+      "expression": "Amounts.TRANSACTION_AMOUNT + Fees.IOF",
+      "debit_account": { "number": "101", "description": "Conta de débito" },
+      "credit_account": { "number": "201", "description": "Conta de crédito" }
+    }
+  ]
+}
 ```
 
-### Install dependencies
+Ready-to-use requests are in `docs/collections/Accounting-Scripts.postman_collection.json`.
+
+## Configuration
+
+The binary does not load `.env` by itself. `make run` exports it before starting the app; the VS Code launch config uses it as `envFile`.
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `APP_PORT` | `5000` | HTTP port |
+| `AWS_ADDRESS` | `""` | AWS endpoint override (LocalStack in development) |
+| `AWS_REGION` | `""` | AWS region |
+| `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | `""` | AWS credentials |
+| `CONFIG_SNS_TOPIC` | `""` | Topic ARN for config events |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | — | OTLP collector endpoint |
+| `OTEL_SERVICE_NAME` | — | Service name in traces/metrics |
+
+`config.New()` is a `sync.Once` singleton: environment values are captured on the first call.
+
+## Local development
+
+Requirements: Go (see `go.mod`; the Docker image uses Go 1.27.1), Docker with Compose, Make. Terraform and `kubectl` are only needed for infrastructure and deploy; `netcat` (`nc`) is used by `make terraform`.
 
 ```bash
 go mod download
+make run                         # exports .env, then: go run cmd/main.go
 ```
 
-### Run the application
+`go run ./cmd/...` also starts the service, but without loading `.env`.
+
+Local dependencies are declared in `docker-compose.yaml`: LocalStack 4566 (SQS/SNS/DynamoDB), mockserver 1080, OTEL collector 4317/4318, Redis, stackport 8080, Zipkin 9411 and Prometheus 9090.
 
 ```bash
-go run ./cmd/...
+make up                          # docker compose up -d, then make terraform
+make logs
+make down                        # docker compose down -v (removes volumes)
 ```
 
-### Run tests
+Terraform (`scripts/terraform/`) creates the `ConfigTable` DynamoDB table (`org_id` hash key, `config_id` range key, `GSI-Index` on `filters`), the `config-sns-topic` topic, a `script-sqs-queue` subscription and a seed config `ledger-101`.
+
+## Tests and benchmarks
 
 ```bash
-go test ./...
+go test ./...                                        # full suite; unit tests only, no external services needed
+go test ./internal/application/ledger -run TestService_CreateScript -count=1
+make test                                            # coverage in cover.out, then opens HTML in a browser
+go generate ./internal/application/ledger            # regenerates mock.go (requires mockgen from go.uber.org/mock)
+make bench-one name=BenchmarkCreateConfig_Success
 ```
 
-### Run with Docker Compose
+Other Make targets: `bench`, `bench-count`, `bench-baseline`, `bench-compare` (needs `benchstat`), `bench-parallel`, `profile-cpu`, `profile-mem`, `profile-trace`, `profile-clean`. There is no CI, lint or formatter configuration in the repository; use `go build ./...` / `go vet ./...` as additional checks.
+
+## Deploy
 
 ```bash
-docker compose up
+make build version=<tag>         # builds scripts/docker/api/Dockerfile
+make push version=<tag>
+make apply                       # kubectl apply -f scripts/k8s/
+make destroy
 ```
 
-## Project Structure
+`make publish version=<tag>` runs build + push. The manifests deploy image `clodoaldomarques/ledger-config:latest`, expose port `5000` (nodePort `31000`), and require a Kubernetes secret named `aws-credentials`. `make restart` and `make reload` are destructive.
 
-```text
-cmd/
-    Application entry point
+## Known limitations
 
-config/
-    Application configuration
-
-docs/
-    Documentation and architectural resources
-
-internal/
-    Application implementation
-
-scripts/
-    Development and infrastructure scripts
-```
-
-## Development
-
-A `Makefile` is provided to simplify common development and operational tasks.
-
-Check the available commands with:
-
-```bash
-make help
-```
-
-If the project does not provide a `help` target, inspect the available targets directly:
-
-```bash
-make
-```
-
-## Technology Stack
-
-| Technology | Purpose |
-|---|---|
-| Go | Backend service |
-| Docker | Containerization |
-| Docker Compose | Local development environment |
-| Make | Development automation |
-
-## Role in the Ledger Ecosystem
-
-Ledger Config is designed as an independent service within the Ledger platform.
-
-```text
-                 ┌──────────────────────┐
-                 │    Ledger Services   │
-                 └──────────┬───────────┘
-                            │
-                            │ Configuration
-                            ▼
-                 ┌──────────────────────┐
-                 │    Ledger Config     │
-                 │                      │
-                 │      Go API          │
-                 └──────────────────────┘
-```
-
-By isolating accounting configuration into a dedicated service, other components of the platform can consume configuration without coupling their internal implementation to the configuration management logic.
-
-## Engineering Concepts
-
-This project demonstrates practical backend engineering concepts including:
-
-- Go backend development
-- REST API development
-- Service-oriented architecture
-- Separation of concerns
-- Configuration management
-- Containerization
-- Local development automation
-- Modular project organization
-
-## Project Status
-
-This project is part of my Go backend engineering portfolio and is intended to demonstrate the design and implementation of a dedicated configuration service within a distributed backend ecosystem.
+- Terraform is hardcoded to LocalStack at `192.168.67.2:30002`, while Compose publishes LocalStack on `localhost:4566`; `make terraform` waits for that IP before plan/apply. Adjust `scripts/terraform/provider.tf` for other environments.
+- The disable route declares `:config_id`, but `DisableConfig` reads `c.Param("script_id")`, so the config id is currently empty.
+- Makefile benchmark examples and profile targets still reference old `BenchmarkCreateEvent_*` names; see `internal/application/ledger/bench_test.go` for the current ones.
+- `internal/infra/gringotts` is not part of the request path yet.
 
 ## Author
 
-**Clodoaldo Marques**
-
-Backend Software Engineer focused on Go, Microservices, Distributed Systems and Cloud-Native architectures.
-
-- GitHub: https://github.com/clodoaldomarques
-- LinkedIn: https://www.linkedin.com/in/clodoaldomarques/
+**Clodoaldo Marques** — [GitHub](https://github.com/clodoaldomarques) · [LinkedIn](https://www.linkedin.com/in/clodoaldomarques/)
